@@ -50,9 +50,7 @@ SendMoreMoney::SendMoreMoney()
     AddConstraint(different);
 
     Function<int, SumPartial> *sum_partial = new Function<int, SumPartial>(0);
-    sum_partial->AddVariable(s);
-    sum_partial->AddVariable(m);
-    sum_partial->AddVariable(o);
+    sum_partial->AddVariable(3, s, m, o);
     AddConstraint(sum_partial);
 
     Function<int, Sum> *sum = new Function<int, Sum>(0);

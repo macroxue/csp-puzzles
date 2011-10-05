@@ -72,44 +72,37 @@ Zebra::Zebra()
 
     // The Englishman lives in the red house.
     Same<int> *c1 = new Same<int>();
-    c1->AddVariable(v[Englishman]);
-    c1->AddVariable(v[Red]);
+    c1->AddVariable(2, v[Englishman], v[Red]);
     AddConstraint(c1);
 
     // The Spaniard owns the dog.
     Same<int> *c2 = new Same<int>();
-    c2->AddVariable(v[Spaniard]);
-    c2->AddVariable(v[Dog]);
+    c2->AddVariable(2, v[Spaniard], v[Dog]);
     AddConstraint(c2);
 
     // Coffee is drunk in the green house.
     Same<int> *c3 = new Same<int>();
-    c3->AddVariable(v[Coffee]);
-    c3->AddVariable(v[Green]);
+    c3->AddVariable(2, v[Coffee], v[Green]);
     AddConstraint(c3);
 
     // The Ukrainian drinks tea.
     Same<int> *c4 = new Same<int>();
-    c4->AddVariable(v[Ukrainian]);
-    c4->AddVariable(v[Tea]);
+    c4->AddVariable(2, v[Ukrainian], v[Tea]);
     AddConstraint(c4);
 
     // The green house is immediately to the right of the ivory house.
     Consecutive<int> *c5 = new Consecutive<int>();
-    c5->AddVariable(v[Ivory]);
-    c5->AddVariable(v[Green]);
+    c5->AddVariable(2, v[Ivory], v[Green]);
     AddConstraint(c5);
 
     // The Old Gold smoker owns snails.
     Same<int> *c6 = new Same<int>();
-    c6->AddVariable(v[OldGold]);
-    c6->AddVariable(v[Snails]);
+    c6->AddVariable(2, v[OldGold], v[Snails]);
     AddConstraint(c6);
 
     // Kools are smoked in the yellow house.
     Same<int> *c7 = new Same<int>();
-    c7->AddVariable(v[Kools]);
-    c7->AddVariable(v[Yellow]);
+    c7->AddVariable(2, v[Kools], v[Yellow]);
     AddConstraint(c7);
 
     // Milk is drunk in the middle house.
@@ -120,32 +113,27 @@ Zebra::Zebra()
 
     // The man who smokes Chesterfields lives in the house next to the man with the fox.
     Next<int> *c8 = new Next<int>();
-    c8->AddVariable(v[Fox]);
-    c8->AddVariable(v[Chesterfield]);
+    c8->AddVariable(2, v[Fox], v[Chesterfield]);
     AddConstraint(c8);
 
     // Kools are smoked in the house next to the house where the horse is kept.
     Next<int> *c9 = new Next<int>();
-    c9->AddVariable(v[Horse]);
-    c9->AddVariable(v[Kools]);
+    c9->AddVariable(2, v[Horse], v[Kools]);
     AddConstraint(c9);
 
     // The Lucky Strike smoker drinks orange juice.
     Same<int> *c10 = new Same<int>();
-    c10->AddVariable(v[LuckyStrike]);
-    c10->AddVariable(v[OrangeJuice]);
+    c10->AddVariable(2, v[LuckyStrike], v[OrangeJuice]);
     AddConstraint(c10);
 
     // The Japanese smokes Parliaments.
     Same<int> *c11 = new Same<int>();
-    c11->AddVariable(v[Japanese]);
-    c11->AddVariable(v[Parliament]);
+    c11->AddVariable(2, v[Japanese], v[Parliament]);
     AddConstraint(c11);
 
     // The Norwegian lives next to the blue house.
     Next<int> *c12 = new Next<int>();
-    c12->AddVariable(v[Blue]);
-    c12->AddVariable(v[Norwegian]);
+    c12->AddVariable(2, v[Blue], v[Norwegian]);
     AddConstraint(c12);
 }
 
