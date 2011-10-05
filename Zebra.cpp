@@ -3,7 +3,6 @@
 
 #include "OneToOne.h"
 #include "Same.h"
-#include "Consecutive.h"
 #include "Function.h"
 #include "Problem.h"
 
@@ -35,6 +34,14 @@ class Zebra : public Problem<int>
             bool operator()(int count, const int values[], int)
             {
                 return abs(values[0] - values[1]) == 1;
+            }
+        };
+
+        struct RightNext
+        {
+            bool operator()(int count, const int values[], int)
+            {
+                return values[0] - values[1] == 1;
             }
         };
 };
@@ -99,8 +106,8 @@ Zebra::Zebra()
     AddConstraint(c4);
 
     // The green house is immediately to the right of the ivory house.
-    Consecutive<int> *c5 = new Consecutive<int>();
-    c5->AddVariable(2, v[Ivory], v[Green]);
+    Function<int, RightNext> *c5 = new Function<int, RightNext>();
+    c5->AddVariable(2, v[Green], v[Ivory]);
     AddConstraint(c5);
 
     // The Old Gold smoker owns snails.
@@ -121,12 +128,12 @@ Zebra::Zebra()
 
     // The man who smokes Chesterfields lives in the house next to the man with the fox.
     Function<int, Next> *c8 = new Function<int, Next>();
-    c8->AddVariable(2, v[Fox], v[Chesterfield]);
+    c8->AddVariable(2, v[Chesterfield], v[Fox]);
     AddConstraint(c8);
 
     // Kools are smoked in the house next to the house where the horse is kept.
     Function<int, Next> *c9 = new Function<int, Next>();
-    c9->AddVariable(2, v[Horse], v[Kools]);
+    c9->AddVariable(2, v[Kools], v[Horse]);
     AddConstraint(c9);
 
     // The Lucky Strike smoker drinks orange juice.
@@ -141,7 +148,7 @@ Zebra::Zebra()
 
     // The Norwegian lives next to the blue house.
     Function<int, Next> *c12 = new Function<int, Next>();
-    c12->AddVariable(2, v[Blue], v[Norwegian]);
+    c12->AddVariable(2, v[Norwegian], v[Blue]);
     AddConstraint(c12);
 }
 
