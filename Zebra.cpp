@@ -3,8 +3,8 @@
 
 #include "OneToOne.h"
 #include "Same.h"
-#include "Next.h"
 #include "Consecutive.h"
+#include "Function.h"
 #include "Problem.h"
 
 class Zebra : public Problem<int>
@@ -28,6 +28,14 @@ class Zebra : public Problem<int>
             Coffee, OrangeJuice, Milk, Tea, Water,
             Chesterfield, Kools, LuckyStrike, OldGold, Parliament,
             Dog, Fox, Horse, Snails, Zebra1
+        };
+
+        struct Next
+        {
+            bool operator()(int count, const int values[], int)
+            {
+                return abs(values[0] - values[1]) == 1;
+            }
         };
 };
 
@@ -112,12 +120,12 @@ Zebra::Zebra()
     v[Norwegian]->Decide(1);
 
     // The man who smokes Chesterfields lives in the house next to the man with the fox.
-    Next<int> *c8 = new Next<int>();
+    Function<int, Next> *c8 = new Function<int, Next>();
     c8->AddVariable(2, v[Fox], v[Chesterfield]);
     AddConstraint(c8);
 
     // Kools are smoked in the house next to the house where the horse is kept.
-    Next<int> *c9 = new Next<int>();
+    Function<int, Next> *c9 = new Function<int, Next>();
     c9->AddVariable(2, v[Horse], v[Kools]);
     AddConstraint(c9);
 
@@ -132,7 +140,7 @@ Zebra::Zebra()
     AddConstraint(c11);
 
     // The Norwegian lives next to the blue house.
-    Next<int> *c12 = new Next<int>();
+    Function<int, Next> *c12 = new Function<int, Next>();
     c12->AddVariable(2, v[Blue], v[Norwegian]);
     AddConstraint(c12);
 }

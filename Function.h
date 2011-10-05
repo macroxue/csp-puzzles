@@ -10,7 +10,7 @@ template <class T, class F>
 class Function : public Constraint<T>
 {
     public:
-        Function(T target);
+        Function(T target = 0);
         bool OnDecided(Variable<T> *decided);
 
     private:

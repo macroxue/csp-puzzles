@@ -1,8 +1,13 @@
 CONSTRAINTS=Function.h FunctionAC.h OneToOne.h Different.h \
-	    Same.h Next.h Consecutive.h 
+	    Same.h Consecutive.h 
 FRAMEWORK=Problem.h $(CONSTRAINTS) Constraint.h Variable.h Domain.h
 
-all: Fiver Sudoku SendMoreMoney Zebra Queens
+PUZZELS=Fiver Sudoku SendMoreMoney Zebra Queens
+
+all: $(PUZZELS)
+
+clean:
+	rm -f $(PUZZELS)
 
 Fiver : Fiver.cpp $(FRAMEWORK)
 	g++ -Wall -O3 -o $@ $(filter %.cpp,$^)
