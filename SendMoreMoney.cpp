@@ -12,9 +12,6 @@ class SendMoreMoney : public Problem<int>
         void ShowSolution();
 
     private:
-        static bool Condition1(int count, const int values[], int);
-        static bool Condition(int count, const int values[], int);
-
         Variable<int> *s;
         Variable<int> *e;
         Variable<int> *n;
@@ -24,6 +21,16 @@ class SendMoreMoney : public Problem<int>
         Variable<int> *r;
         Variable<int> *y;
         Variable<int> *v[8];
+
+        struct SumPartial
+        {
+            bool operator() (int count, const int values[], int);
+        };
+
+        struct Sum
+        {
+            bool operator() (int count, const int values[], int);
+        };
 };
 
 SendMoreMoney::SendMoreMoney()
@@ -42,26 +49,26 @@ SendMoreMoney::SendMoreMoney()
         different->AddVariable(v[i]);
     AddConstraint(different);
 
-    Function<int> *function1 = new Function<int>(Condition1, 0);
-    function1->AddVariable(s);
-    function1->AddVariable(m);
-    function1->AddVariable(o);
-    AddConstraint(function1);
+    Function<int, SumPartial> *sum_partial = new Function<int, SumPartial>(0);
+    sum_partial->AddVariable(s);
+    sum_partial->AddVariable(m);
+    sum_partial->AddVariable(o);
+    AddConstraint(sum_partial);
 
-    Function<int> *function = new Function<int>(Condition, 0);
+    Function<int, Sum> *sum = new Function<int, Sum>(0);
     for (unsigned i = 0; i < 8; i++)
-        function->AddVariable(v[i]);
-    AddConstraint(function);
+        sum->AddVariable(v[i]);
+    AddConstraint(sum);
 }
 
-bool SendMoreMoney::Condition1(int count, const int values[], int)
+bool SendMoreMoney::SumPartial::operator()(int count, const int values[], int)
 {
     int sum1 = values[0] + values[1];
     int sum2 = values[1]*10 + values[2];
     return sum1 == sum2 || sum1 + 1 == sum2;
 }
 
-bool SendMoreMoney::Condition(int count, const int values[], int)
+bool SendMoreMoney::Sum::operator()(int count, const int values[], int)
 {
     return values[0]*1000 + values[1]*100 + values[2]*10 + values[3] 
         +  values[4]*1000 + values[5]*100 + values[6]*10 + values[1]

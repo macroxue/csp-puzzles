@@ -14,10 +14,13 @@ class Queens : public Problem<int>
         void ShowSolution();
 
     private:
-        static bool Distance(int count, const int values[], int distance);
-
         int  size;
         Variable<int>  *v[MAX_SIZE];
+
+        struct Safe
+        {
+            bool operator()(int count, const int values[], int distance);
+        };
 };
 
 Queens::Queens(int size)
@@ -38,13 +41,13 @@ Queens::Queens(int size)
     // No two queens can attack each other diagonally
     for (int y1 = 0; y1 < size-1; y1++)
         for (int y2 = y1+1; y2 < size; y2++) {
-            Function<int> *f = new Function<int>(Distance, y2-y1);
-            f->AddVariable(2, v[y1], v[y2]);
-            AddConstraint(f);
+            Function<int, Safe> *safe = new Function<int, Safe>(y2-y1);
+            safe->AddVariable(2, v[y1], v[y2]);
+            AddConstraint(safe);
         }
 }
 
-bool Queens::Distance(int count, const int values[], int distance)
+bool Queens::Safe::operator()(int count, const int values[], int distance)
 {
     return abs(values[0] - values[1]) != distance;
 }

@@ -6,28 +6,25 @@
 //
 // Function: F(x1, x2, ..., xn, y) -> bool
 //
-template <class T>
+template <class T, class F>
 class Function : public Constraint<T>
 {
     public:
-        typedef bool (*condition_fn_t)(int count, const T values[], T target);
-
-        Function(condition_fn_t condition_fn, T target);
+        Function(T target);
         bool OnDecided(Variable<T> *decided);
 
     private:
-        condition_fn_t  condition_fn;
-        T               target;
+        T    target;
 };
 
-template <class T>
-Function<T>::Function(condition_fn_t condition_fn, T target)
-    : condition_fn(condition_fn), target(target)
+template <class T, class F>
+Function<T,F>::Function(T target)
+    : target(target)
 {
 }
 
-template <class T>
-bool Function<T>::OnDecided(Variable<T> *decided)
+template <class T, class F>
+bool Function<T,F>::OnDecided(Variable<T> *decided)
 {
     vector<Variable<T> *>  &variables = Constraint<T>::variables;
     int num_variables = variables.size();
@@ -47,6 +44,7 @@ bool Function<T>::OnDecided(Variable<T> *decided)
     if (num_decided < num_variables - 1)
         return true;
 
+    F   condition_fn;
     if (num_decided == num_variables) {
         // TODO: Why is this needed? Should be true always.
         // Constraint loop caused by depth first search!
