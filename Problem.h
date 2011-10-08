@@ -39,11 +39,12 @@ class Problem
 
     protected:
         int                      num_solutions;
+        long                     search_count;
 };
 
 template <class T>
 Problem<T>::Problem()
-    : num_solutions(0)
+    : num_solutions(0), search_count(0)
 {
 }
 
@@ -90,11 +91,14 @@ void Problem<T>::Solve(bool sort)
 template <class T>
 void Problem<T>::Search(unsigned v)
 {
+    search_count++;
+
     // Skip variables that have been decided.
     while (v < variables.size() && variables[v]->GetDomainSize() == 1) v++;
     if (v == variables.size()) {
         num_solutions++;
-        printf("----- Solution %d -----\n", num_solutions);
+        printf("----- Solution %d after %ld searches -----\n",
+                num_solutions, search_count);
         ShowSolution();
         return;
     }
