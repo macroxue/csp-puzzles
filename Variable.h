@@ -14,7 +14,8 @@ class Variable
 {
     public:
         Variable(T low, T high);
-        Variable(T value[], int count);
+        Variable(const T value[]);
+        Variable(const T value[], int count);
         Variable(bool (*generator_fn)(void *, T &), void *cookie);
 
         void SetName(const char *name);
@@ -55,7 +56,13 @@ Variable<T>::Variable(T low, T high)
 }
 
 template <class T>
-Variable<T>::Variable(T value[], int count)
+Variable<T>::Variable(const T value[])
+    : domain(value), name("")
+{
+}
+
+template <class T>
+Variable<T>::Variable(const T value[], int count)
     : domain(value, count), name("")
 {
 }

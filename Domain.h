@@ -19,7 +19,8 @@ class Domain
         Domain(T low, T high);
 
         // Domain defined by discrete values.
-        Domain(T value[], int count);
+        Domain(const T value[]);    // Ends with 0
+        Domain(const T value[], int count);
 
         // Domain defined by a generator function of discrete values.
         // The generator function is called repeated to produce one value at a
@@ -92,7 +93,15 @@ Domain<T>::Domain(T low, T high)
 }
 
 template <class T>
-Domain<T>::Domain(T values_in[], int count_in)
+Domain<T>::Domain(const T values_in[])
+{
+    for (int i = 0; values_in[i]; i++)
+        values.push_back(values_in[i]);
+    count = values.size();
+}
+
+template <class T>
+Domain<T>::Domain(const T values_in[], int count_in)
 {
     for (int i = 0; i < count_in; i++)
         values.push_back(values_in[i]);
