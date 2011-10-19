@@ -1,11 +1,10 @@
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "OneToOne.h"
 #include "Function.h"
 #include "Problem.h"
-
-const int MAX_SIZE = 64;
 
 class Queens : public Problem<int>
 {
@@ -15,7 +14,7 @@ class Queens : public Problem<int>
 
     private:
         int  size;
-        Variable<int>  *v[MAX_SIZE];
+        Variable<int>  **v;
 
         struct Safe
         {
@@ -26,6 +25,8 @@ class Queens : public Problem<int>
 Queens::Queens(int size)
     : size(size)
 {
+    v = new Variable<int> * [size];
+
     // Variables
     for (int row = 0; row < size; row++) {
         v[row] = new Variable<int>(0, size-1);
@@ -52,6 +53,8 @@ bool Queens::Safe::operator()(int count, const int values[], int distance)
     return abs(values[0] - values[1]) != distance;
 }
 
+int solutions_required = INT_MAX;
+
 void Queens::ShowSolution()
 {
     for (int row = 0; row < size; row++) {
@@ -60,6 +63,8 @@ void Queens::ShowSolution()
             printf("%c ", (value == col ? 'Q' : '.'));
         printf("\n");
     }
+    if (num_solutions >= solutions_required)
+        exit(0);
 }
 
 int main(int argc, char *argv[])
@@ -67,13 +72,11 @@ int main(int argc, char *argv[])
     int size = 4;
     if (argc > 1)
         size = atoi(argv[1]);
-    if (size > MAX_SIZE) {
-        printf("Max size is %d\n", MAX_SIZE);
-        return 1;
-    }
+    if (argc > 2)
+        solutions_required = atoi(argv[2]);
 
     Queens queens(size);
-    queens.Solve(false);
+    queens.Solve(true);
 
     return 0;
 }
