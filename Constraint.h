@@ -20,6 +20,9 @@ class Constraint
         void AddVariable(Variable<T> *variable);
         void AddVariable(int num_variables, ...);
 
+        void UpdateBounds();
+        void GetBounds(T &low, T &high) const;
+
         // Enforce the constraint.
         // The domains can be reduced to meet the constraint.
         // False is returned if the constraint cannot be met.
@@ -28,6 +31,8 @@ class Constraint
 
     protected:
         vector<Variable<T> *>  variables;
+
+        T    low_value, high_value;
 
         friend class Problem<T>;
 };
@@ -55,6 +60,31 @@ void Constraint<T>::AddVariable(int num_variables, ...)
     }
 
     va_end(ap);
+}
+
+template <class T>
+void Constraint<T>::UpdateBounds()
+{
+    for (unsigned i = 0; i < variables.size(); i++) {
+        T  low, high;
+        variables[i]->GetDomain().GetBounds(low, high);
+        if (i == 0) {
+            low_value  = low;
+            high_value = high;
+        } else {
+            if (low_value > low)
+                low_value = low;
+            if (high_value < high)
+                high_value = high;
+        }
+    }
+}
+
+template <class T>
+void Constraint<T>::GetBounds(T &low, T &high) const
+{
+    low  = low_value;
+    high = high_value;
 }
 
 #endif

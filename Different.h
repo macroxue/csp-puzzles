@@ -41,13 +41,11 @@ bool Different<T>::OnDecided(Variable<T> *decided)
             if (!consistent)
                 return false;
         } 
-#if 0
         else if (old_domain_size > new_domain_size) {
             bool consistent = variables[i]->PropagateReduction(NULL);
             if (!consistent)
                 return false;
         }
-#endif
     }
     return true;
 }

@@ -154,7 +154,7 @@ template <class T>
 void Domain<T>::GetBounds(T &low, T &high) const
 {
     low = high = values[0];
-    for (int i = 1; i < values.size(); i++) {
+    for (int i = 1; i < count; i++) {
         if (low > values[i])
             low = values[i];
         if (high < values[i])

@@ -71,6 +71,9 @@ void Problem<T>::Solve(bool sort)
 {
     to_sort = sort;
 
+    for (unsigned i = 0; i < constraints.size(); i++)
+        constraints[i]->UpdateBounds();
+
     for (unsigned i = 0; i < variables.size(); i++) {
         if (variables[i]->GetDomainSize() == 1) {
             bool consistent = variables[i]->PropagateDecision(NULL);
@@ -81,6 +84,9 @@ void Problem<T>::Solve(bool sort)
         }
     }
     storage.clear();
+
+    for (unsigned i = 0; i < constraints.size(); i++)
+        constraints[i]->UpdateBounds();
 
 #ifdef VERBOSE
     ShowState(NULL);
