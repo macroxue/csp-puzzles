@@ -55,13 +55,17 @@ bool Function<T,F>::OnDecided(Variable<T> *decided)
     Variable<T> *undecided = variables[undecided_index];
 
     int old_domain_size = undecided->GetDomainSize();
+    int num_bad_values = 0;
+    T   bad_values[old_domain_size];
     for (int i = 0; i < undecided->GetDomainSize(); i++) {
         T value = undecided->GetValue(i);
         values[undecided_index] = value;
         bool consistent = condition_fn(num_variables, values, target);
         if (!consistent)
-            undecided->Exclude(value);
+            bad_values[num_bad_values++] = value;
     }
+    for (int i = 0; i < num_bad_values; i++)
+        undecided->Exclude(bad_values[i]);
 
     int new_domain_size = undecided->GetDomainSize();
     if (new_domain_size == 0)
