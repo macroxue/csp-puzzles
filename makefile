@@ -1,8 +1,8 @@
 CONSTRAINTS=Function.h FunctionAC.h OneToOne.h Different.h \
-	    Same.h
+	    Same.h RunLength.h
 FRAMEWORK=Problem.h $(CONSTRAINTS) Constraint.h Variable.h Domain.h
 
-PUZZELS=Fiver Sudoku SendMoreMoney Zebra Queens Strimko Crossword
+PUZZELS=Fiver Sudoku SendMoreMoney Zebra Queens Strimko Crossword Nonogram
 
 all: $(PUZZELS)
 
@@ -34,4 +34,7 @@ Strimko: Strimko.cpp $(FRAMEWORK)
 	g++ -Wall -O3 -o $@ $(filter %.cpp,$^) 
 
 Crossword: Crossword.cpp $(FRAMEWORK)
+	g++ -Wall -O3 -o $@ $(filter %.cpp,$^) 
+
+Nonogram: Nonogram.cpp $(FRAMEWORK)
 	g++ -Wall -O3 -o $@ $(filter %.cpp,$^) 

@@ -11,4 +11,7 @@ done
 for INPUT in strimko.in*; do
     time Strimko < $INPUT
 done
+for INPUT in nonogram.in*; do
+    time Nonogram < $INPUT
+done
 
