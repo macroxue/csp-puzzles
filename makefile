@@ -38,3 +38,6 @@ Crossword: Crossword.cpp $(FRAMEWORK)
 
 Nonogram: Nonogram.cpp $(FRAMEWORK)
 	g++ -Wall -O3 -o $@ $(filter %.cpp,$^) 
+
+Nonogram.g: Nonogram.cpp $(FRAMEWORK)
+	g++ -Wall -g -o $@ $(filter %.cpp,$^) -DVERBOSE

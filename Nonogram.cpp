@@ -10,6 +10,7 @@ class Nonogram : public Problem<bool>
 {
     public:
         Nonogram();
+        void ShowState(Variable<bool> *);
         void ShowSolution();
 
     private:
@@ -64,6 +65,22 @@ Nonogram::Nonogram()
         for (int x = 0; x < columns; x++) 
             r->AddVariable(grid[x][y]);
         AddConstraint(r);
+    }
+}
+
+void Nonogram::ShowState(Variable<bool> *current)
+{
+    for (int y = 0; y < rows; y++) {
+        for (int x = 0; x < columns; x++) {
+            if (grid[x][y]->GetDomainSize() == 1) {
+                bool value = grid[x][y]->GetValue(0);
+                putchar(value ? 'O' : '.');
+            } else {
+                putchar(' ');
+            }
+            putchar(current == grid[x][y] ? '*' : ' ');
+        }
+        printf("\n");
     }
 }
 
