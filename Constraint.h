@@ -26,8 +26,10 @@ class Constraint
         // Enforce the constraint.
         // The domains can be reduced to meet the constraint.
         // False is returned if the constraint cannot be met.
-        virtual bool OnDecided(Variable<T> *decided) = 0;
+        virtual bool OnDecided(Variable<T> *decided);
         virtual bool OnReduced(Variable<T> *reduced) { return true; }
+
+        Problem<T> *GetProblem() const { return problem; }
 
     protected:
         vector<Variable<T> *>  variables;
@@ -35,6 +37,7 @@ class Constraint
         T    low_value, high_value;
 
         friend class Problem<T>;
+        Problem<T>  *problem;
 };
 
 #include "Variable.h"
@@ -85,6 +88,17 @@ void Constraint<T>::GetBounds(T &low, T &high) const
 {
     low  = low_value;
     high = high_value;
+}
+
+#include "Problem.h"
+
+template <class T>
+bool Constraint<T>::OnDecided(Variable<T> *decided)
+{
+#ifdef VERBOSE
+    problem->ShowState(decided);
+#endif
+    return true;
 }
 
 #endif

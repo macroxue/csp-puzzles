@@ -48,6 +48,7 @@ class Variable
 };
 
 #include "Constraint.h"
+#include "Problem.h"
 
 template <class T>
 Variable<T>::Variable(T low, T high)
@@ -106,6 +107,11 @@ void Variable<T>::AddConstraint(Constraint<T> *constraint)
 template <class T>
 bool Variable<T>::PropagateDecision(Constraint<T> *start)
 {
+#ifdef VERBOSE
+    Problem<T> *problem = constraints[0]->GetProblem();
+    problem->ShowState(this);
+#endif
+
     for (unsigned i = 0; i < constraints.size(); i++) {
         if (constraints[i] == start) continue;
 

@@ -57,6 +57,8 @@ void Problem<T>::AddConstraint(Constraint<T> *constraint)
         if (find(variables.begin(), variables.end(), variable) == variables.end())
             AddVariable(variable);
     }
+
+    constraint->problem = this;
 }
 
 template <class T>
