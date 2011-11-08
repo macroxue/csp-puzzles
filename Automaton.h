@@ -45,19 +45,19 @@ class Automaton
             State *Transit(T value);
         }; 
 
-        struct PowerTranstion {
+        struct Transition {
             State   *from;
             State   *to;
             T       value;
 
-            PowerTranstion(State *from, State *to, T value)
+            Transition(State *from, State *to, T value)
                 : from(from), to(to), value(value) {}
         };
 
         struct PowerState {
             vector<State *>        states;
             vector<T>              inputs;
-            vector<PowerTranstion> transition;
+            vector<Transition>     transition;
 
             void AddState(State *state);
             void AddInput(T value);
@@ -172,7 +172,7 @@ bool Automaton<T>::RejectState(int i, State *state, Input input[], int input_siz
 
     PowerState &power_state = power_states[i];
     power_state.inputs.clear();
-    vector<PowerTranstion> &transition = power_state.transition;
+    vector<Transition> &transition = power_state.transition;
     for (unsigned t = 0; t < transition.size(); t++) {
         if (transition[t].to == state) {
             transition.erase(transition.begin() + t);
@@ -232,7 +232,7 @@ void Automaton<T>::PowerState::AddInput(T value) {
 template <class T>
 void Automaton<T>::PowerState::AddTransition(State *from, State *to, T value)
 {
-    transition.push_back(PowerTranstion(from, to, value));
+    transition.push_back(Transition(from, to, value));
 }
 
 #endif
