@@ -2,6 +2,7 @@
 #define PROBLEM_H
 
 #include "Constraint.h"
+#include "Queue.h"
 
 #include <algorithm>
 #include <typeinfo>
@@ -18,12 +19,14 @@ class Problem
         Problem();
         void AddConstraint(int num_variables, ...);
         void AddConstraint(Constraint<T> *constraint);
+        void ActivateConstraint(Constraint<T> *constraint);
         void Solve(bool sort);
         virtual void ShowState(Variable<T> *current);
         virtual void ShowSolution();
 
     private:
         void AddVariable(Variable<T> *variable);
+        bool EnforceActiveConstraints(bool consistent);
         void Search(unsigned v);
         void Sort(unsigned v);
         void StartCheckpoint();
@@ -31,6 +34,7 @@ class Problem
 
         vector<Variable<T> *>    variables;
         vector<Constraint<T> *>  constraints;
+        Queue<Constraint<T> *>   active_constraints;
 
         typedef vector< pair<Variable<T> *, int> > Storage;
         Storage                  storage;
@@ -62,6 +66,16 @@ void Problem<T>::AddConstraint(Constraint<T> *constraint)
 }
 
 template <class T>
+void Problem<T>::ActivateConstraint(Constraint<T> *constraint)
+{
+    if (constraint->IsActive())
+        return;
+
+    constraint->SetActive(true);
+    active_constraints.Enqueue(constraint);
+}
+
+template <class T>
 void Problem<T>::AddVariable(Variable<T> *variable)
 {
     variables.push_back(variable);
@@ -69,12 +83,26 @@ void Problem<T>::AddVariable(Variable<T> *variable)
 }
 
 template <class T>
+bool Problem<T>::EnforceActiveConstraints(bool consistent)
+{
+    while (!active_constraints.IsEmpty()) {
+        Constraint<T> *constraint = active_constraints.Dequeue();
+        constraint->SetActive(false);
+        if (consistent)
+            consistent = constraint->Enforce();
+    }
+    return consistent;
+}
+
+template <class T>
 void Problem<T>::Solve(bool sort)
 {
     to_sort = sort;
 
-    for (unsigned i = 0; i < constraints.size(); i++)
+    for (unsigned i = 0; i < constraints.size(); i++) {
         constraints[i]->UpdateBounds();
+        ActivateConstraint(constraints[i]);
+    }
 
     for (unsigned i = 0; i < variables.size(); i++) {
         if (variables[i]->GetDomainSize() == 1) {
@@ -85,6 +113,10 @@ void Problem<T>::Solve(bool sort)
             i--;
         }
     }
+
+    if (!EnforceActiveConstraints(true)) 
+        return;
+
     storage.clear();
 
     for (unsigned i = 0; i < constraints.size(); i++)
@@ -129,6 +161,7 @@ void Problem<T>::Search(unsigned v)
 #endif
         variable->Decide(value);
         bool consistent = variable->PropagateDecision(NULL);
+        consistent = EnforceActiveConstraints(consistent);
         if (consistent) {
             if (to_sort)
                 Sort(v + 1);

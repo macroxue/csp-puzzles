@@ -33,6 +33,7 @@ class Variable
         T    GetValue(int i) const;
         int  GetDomainSize() const;
         const Domain<T> & GetDomain() const;
+        vector<Constraint<T> *> & GetConstraints();
 
         typedef vector< pair<Variable<T> *, int> > Storage;
         void SetStorage(Storage *storage);
@@ -178,6 +179,12 @@ template <class T>
 const Domain<T> & Variable<T>::GetDomain() const
 {
     return domain;
+}
+
+template <class T>
+vector<Constraint<T> *> & Variable<T>::GetConstraints()
+{
+    return constraints;
 }
 
 template <class T>

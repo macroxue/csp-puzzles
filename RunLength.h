@@ -12,6 +12,7 @@ class RunLength : public Constraint<bool>
     public:
         RunLength(vector<int> & length);
         bool OnDecided(Variable<bool> *decided);
+        bool Enforce();
 
     private:
         vector<int> & length;
@@ -35,6 +36,11 @@ RunLength::RunLength(vector<int> & length)
 
 bool RunLength::OnDecided(Variable<bool> *decided)
 {
+    return Enforce();
+}
+
+bool RunLength::Enforce()
+{
     vector<Variable<bool> *>  &variables = Constraint<bool>::variables;
     int num_variables = variables.size();
 
@@ -54,12 +60,28 @@ bool RunLength::OnDecided(Variable<bool> *decided)
     if (!accepted)
         return false;
 
+    int num_decided = 0;
+    int decided_index[num_variables];
     for (int i = 0; i < num_variables; i++) {
         if (variables[i]->GetDomainSize() > 1 && input[i].decided) {
             variables[i]->Decide(input[i].value);
 
-            if (!variables[i]->PropagateDecision(this))
+            decided_index[num_decided++] = i;
+        }
+    }
+
+    for (int i = 0; i < num_decided; i++) {
+        vector<Constraint<bool>*> &constraints = 
+            variables[ decided_index[i] ]->GetConstraints();
+        for (unsigned j = 0; j < constraints.size(); j++) {
+            if (constraints[j] == this)
+                continue;
+#if 1
+            problem->ActivateConstraint(constraints[j]);
+#else
+            if (!constraints[j]->OnDecided(variables[i]))
                 return false;
+#endif
         }
     }
 

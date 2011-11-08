@@ -1,6 +1,5 @@
-CONSTRAINTS=Function.h FunctionAC.h OneToOne.h Different.h \
-	    Same.h
-FRAMEWORK=Problem.h $(CONSTRAINTS) Constraint.h Variable.h Domain.h
+CONSTRAINTS=Function.h FunctionAC.h OneToOne.h Different.h Same.h
+FRAMEWORK=Problem.h $(CONSTRAINTS) Constraint.h Variable.h Domain.h Queue.h
 
 PUZZELS=Fiver Sudoku SendMoreMoney Zebra Queens Strimko Crossword Nonogram
 
@@ -8,6 +7,9 @@ all: $(PUZZELS)
 
 clean:
 	rm -f $(PUZZELS)
+
+test:
+	./test.sh 2>&1 | tee test.out
 
 Fiver : Fiver.cpp $(FRAMEWORK)
 	g++ -Wall -O3 -o $@ $(filter %.cpp,$^)

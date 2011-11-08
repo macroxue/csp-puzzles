@@ -1,6 +1,8 @@
 #ifndef CONSTRAINT_H
 #define CONSTRAINT_H
 
+#include "Queue.h"
+
 #include <vector>
 using namespace std;
 
@@ -14,9 +16,11 @@ class Problem;
 // A constraint is about the relation of a set of variables
 //
 template <class T>
-class Constraint
+class Constraint : public QueueObject
 {
     public:
+        Constraint();
+
         void AddVariable(Variable<T> *variable);
         void AddVariable(int num_variables, ...);
 
@@ -28,12 +32,17 @@ class Constraint
         // False is returned if the constraint cannot be met.
         virtual bool OnDecided(Variable<T> *decided);
         virtual bool OnReduced(Variable<T> *reduced) { return true; }
+        virtual bool Enforce() { return true; }
 
         Problem<T> *GetProblem() const { return problem; }
+
+        bool IsActive() { return active; }
+        void SetActive(bool is_active) { active = is_active; }
 
     protected:
         vector<Variable<T> *>  variables;
 
+        bool active;
         T    low_value, high_value;
 
         friend class Problem<T>;
@@ -43,6 +52,12 @@ class Constraint
 #include "Variable.h"
 
 #include <stdarg.h>
+
+template <class T>
+Constraint<T>::Constraint()
+    : active(false)
+{
+}
 
 template <class T>
 void Constraint<T>::AddVariable(Variable<T> *variable)
