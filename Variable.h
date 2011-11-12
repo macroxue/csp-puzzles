@@ -17,6 +17,7 @@ class Variable
         Variable(const T value[]);
         Variable(const T value[], int count);
         Variable(bool (*generator_fn)(void *, T &), void *cookie);
+        void Init();
 
         void SetName(const char *name);
         const char *GetName() const;
@@ -46,6 +47,9 @@ class Variable
         Storage *                storage;
         const char *             name;
         int                      id;
+
+    public:
+        int                      failures;
 };
 
 #include "Constraint.h"
@@ -55,24 +59,35 @@ template <class T>
 Variable<T>::Variable(T low, T high)
     : domain(low, high), name("")
 {
+    Init();
 }
 
 template <class T>
 Variable<T>::Variable(const T value[])
     : domain(value), name("")
 {
+    Init();
 }
 
 template <class T>
 Variable<T>::Variable(const T value[], int count)
     : domain(value, count), name("")
 {
+    Init();
 }
 
 template <class T>
 Variable<T>::Variable(bool (*generator_fn)(void *, T &), void *cookie)
     : domain(generator_fn, cookie), name("")
 {
+    Init();
+}
+
+template <class T>
+void Variable<T>::Init()
+{
+    name       = "";
+    failures   = 0;
 }
 
 template <class T>

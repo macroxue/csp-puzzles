@@ -169,6 +169,8 @@ void Problem<T>::Search(unsigned v)
             ShowState(variable);
 #endif
             Search(v + 1);
+        } else {
+            variable->failures++;
         }
         RestoreCheckpoint();
         variable->Exclude(value);
@@ -187,8 +189,15 @@ struct compare_domain_size
 template <class T>
 void Problem<T>::Sort(unsigned v)
 {
-    compare_domain_size<T>  compare;
-    sort(variables.begin() + v, variables.end(), compare);
+    if (typeid(T) == typeid(bool)) {
+        for (unsigned i = v+1; i < variables.size(); i++) {
+            if (variables[v]->failures < variables[i]->failures)
+                swap(variables[v], variables[i]);
+        }
+    } else {
+        compare_domain_size<T>  compare;
+        sort(variables.begin() + v, variables.end(), compare);
+    }
 }
 
 template <class T>

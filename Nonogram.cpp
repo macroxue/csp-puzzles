@@ -98,7 +98,7 @@ void Nonogram::ShowSolution()
 int main(int argc, char *argv[])
 {
     Nonogram puzzle;
-    puzzle.Solve(false);
+    puzzle.Solve(true);
 
     return 0;
 }
