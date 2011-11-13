@@ -14,13 +14,9 @@ test:
 
 Fiver : Fiver.cpp $(FRAMEWORK)
 	g++ -Wall -O3 -o $@ $(filter %.cpp,$^)
-Fiver.g : Fiver.cpp $(FRAMEWORK)
-	g++ -Wall -g -o $@ $(filter %.cpp,$^) -DVERBOSE
 
 Sudoku : Sudoku.cpp $(FRAMEWORK)
 	g++ -Wall -O3 -o $@ $(filter %.cpp,$^)
-Sudoku.g : Sudoku.cpp $(FRAMEWORK)
-	g++ -Wall -g -o $@ $(filter %.cpp,$^) -DVERBOSE
 
 SendMoreMoney: SendMoreMoney.cpp $(FRAMEWORK)
 	g++ -Wall -O3 -o $@ $(filter %.cpp,$^) 
@@ -30,8 +26,6 @@ Zebra: Zebra.cpp $(FRAMEWORK)
 
 Queens: Queens.cpp $(FRAMEWORK)
 	g++ -Wall -O3 -o $@ $(filter %.cpp,$^) 
-Queens.g: Queens.cpp $(FRAMEWORK)
-	g++ -Wall -g -o $@ $(filter %.cpp,$^) -DVERBOSE
 
 Strimko: Strimko.cpp $(FRAMEWORK)
 	g++ -Wall -O3 -o $@ $(filter %.cpp,$^) 
@@ -42,5 +36,3 @@ Crossword: Crossword.cpp $(FRAMEWORK)
 Nonogram: Nonogram.cpp $(FRAMEWORK) RunLength.h Automaton.h
 	g++ -Wall -O3 -o $@ $(filter %.cpp,$^) 
 
-Nonogram.g: Nonogram.cpp $(FRAMEWORK) RunLength.h Automaton.h
-	g++ -Wall -g -o $@ $(filter %.cpp,$^) -DVERBOSE

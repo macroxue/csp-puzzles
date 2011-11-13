@@ -3,6 +3,7 @@
 
 #include "Domain.h"
 
+#include <stdio.h>
 #include <vector>
 using namespace std;
 
@@ -34,6 +35,7 @@ class Variable
         T    GetValue(int i) const;
         int  GetDomainSize() const;
         const Domain<T> & GetDomain() const;
+        void  ShowDomain() const;
         vector<Constraint<T> *> & GetConstraints();
 
         typedef vector< pair<Variable<T> *, int> > Storage;
@@ -123,11 +125,6 @@ void Variable<T>::AddConstraint(Constraint<T> *constraint)
 template <class T>
 bool Variable<T>::PropagateDecision(Constraint<T> *start)
 {
-#ifdef VERBOSE
-    Problem<T> *problem = constraints[0]->GetProblem();
-    problem->ShowState(this);
-#endif
-
     for (unsigned i = 0; i < constraints.size(); i++) {
         if (constraints[i] == start) continue;
 
@@ -194,6 +191,15 @@ template <class T>
 const Domain<T> & Variable<T>::GetDomain() const
 {
     return domain;
+}
+
+template <class T>
+void Variable<T>::ShowDomain() const
+{
+    printf("Variable %d = { ", GetId());
+    for (int i = 0; i < GetDomainSize(); i++)
+        printf("%d ", GetValue(i));
+    printf("}\n");
 }
 
 template <class T>

@@ -10,6 +10,8 @@
 #include <vector>
 using namespace std;
 
+#define DEBUG( statement )  if (option.debug) statement
+
 //
 // A problem has a set of variables and a set of constraints.
 //
@@ -81,6 +83,7 @@ void Problem<T>::ActivateConstraint(Constraint<T> *constraint)
 template <class T>
 void Problem<T>::AddVariable(Variable<T> *variable)
 {
+    variable->SetId(variables.size());
     variables.push_back(variable);
     variable->SetStorage(&storage);
 }
@@ -156,9 +159,7 @@ void Problem<T>::Solve()
         constraints[i]->UpdateBounds();
 
     Sort(0);
-#ifdef VERBOSE
-    ShowState(NULL);
-#endif
+    DEBUG( ShowState(NULL) );
     Search(0);
 }
 
@@ -178,29 +179,19 @@ void Problem<T>::Search(unsigned v)
     }
 
     Variable<T> *variable = variables[v];
-
-#ifdef VERBOSE
-    printf("Search var %d = ", v);
-    for (int i = 0; i < variable->GetDomainSize(); i++)
-        printf("%d ", variable->GetValue(i));
-    printf("\n");
-    int i = 0;
-#endif
+    DEBUG( variable->ShowDomain() );
 
     while (variable->GetDomainSize() > 0) {
         StartCheckpoint();
         T value = variable->GetValue(0);
-#ifdef VERBOSE
-        printf("Search var %d [%d] = %d\n", v, i++, value);
-#endif
+        DEBUG( printf("Value %d\n", value) );
+
         variable->Decide(value);
         bool consistent = variable->PropagateDecision(NULL);
         consistent = EnforceActiveConstraints(consistent);
         if (consistent) {
             Sort(v + 1);
-#ifdef VERBOSE
-            ShowState(variable);
-#endif
+            DEBUG( ShowState(variable) );
             Search(v + 1);
         } else {
             variable->failures++;
