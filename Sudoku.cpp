@@ -107,7 +107,6 @@ void Sudoku::ShowSolution()
         puts(y == 2 || y == 5 ? "\n ------+-------+------" : "");
     }
     putchar('\n');
-    exit(0);
 }
 
 int main(int argc, char *argv[])

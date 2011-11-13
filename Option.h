@@ -10,6 +10,7 @@ struct Option
 {
     bool    arc_consistency;
     bool    debug;
+    size_t  num_solutions;
     enum sort_t { SORT_DISABLED, SORT_DOMAIN_SIZE, SORT_FAILURES };
     sort_t  sort;
 
@@ -21,16 +22,18 @@ Option::Option()
 {
     arc_consistency = false;
     debug           = false;
+    num_solutions   = INT_MAX;
     sort            = SORT_DISABLED;
 }
 
 void Option::GetOptions(int argc, char *argv[])
 {
     char c;
-    while ((c = getopt(argc, argv, "ads:")) != -1) {
+    while ((c = getopt(argc, argv, "adn:s:")) != -1) {
         switch (c) {
             case 'a': arc_consistency = true; break;
             case 'd': debug = true; break;
+            case 'n': num_solutions = atoi(optarg); break;
             case 's': 
                 switch (optarg[0]) {
                     case 'd': sort = SORT_DOMAIN_SIZE; break;

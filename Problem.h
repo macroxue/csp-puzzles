@@ -20,6 +20,7 @@ class Problem
 {
     public:
         Problem(Option option);
+        ~Problem();
         void GetOptions(int argc, char *argv[]);
         void AddConstraint(size_t num_variables, ...);
         void AddConstraint(Constraint<T> *constraint);
@@ -49,12 +50,31 @@ class Problem
         size_t                   search_count;
 
         Option                   option;
+
+        double                   start, finish;
 };
+
+#include <sys/time.h>
+
+inline double seconds()
+{
+    struct timeval time_v;
+    gettimeofday(&time_v, NULL);
+    return time_v.tv_sec + time_v.tv_usec * 1e-6;
+}
 
 template <class T>
 Problem<T>::Problem(Option option)
     : num_solutions(0), search_count(0), option(option)
 {
+    start = seconds();
+}
+
+template <class T>
+Problem<T>::~Problem()
+{
+    finish = seconds();
+    printf("Total time = %.3fs\n", finish - start);
 }
 
 template <class T>
@@ -150,8 +170,12 @@ void Problem<T>::Solve()
     if (!EnforceActiveConstraints(true)) 
         return;
 
-    if (option.arc_consistency && !EnforceArcConsistency(0))
-        return;
+    if (option.arc_consistency) {
+        bool consistent = EnforceArcConsistency(0);
+        printf("Arc consistency time = %.3fs\n", seconds() - start);
+        if (!consistent)
+            return;
+    }
 
     storage.clear();
 
@@ -172,9 +196,13 @@ void Problem<T>::Search(size_t v)
     while (v < variables.size() && variables[v]->GetDomainSize() == 1) v++;
     if (v == variables.size()) {
         num_solutions++;
-        printf("----- Solution %ld after %ld searches -----\n",
-                num_solutions, search_count);
+        printf("----- Solution %ld after %ld searches and %.3fs -----\n",
+                num_solutions, search_count, seconds() - start);
         ShowSolution();
+        if (num_solutions >= option.num_solutions) {
+            this->~Problem();
+            exit(0);
+        }
         return;
     }
 

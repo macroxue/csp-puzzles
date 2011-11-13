@@ -53,8 +53,6 @@ bool Queens::Safe::operator()(int count, const int values[], int distance)
     return abs(values[0] - values[1]) != distance;
 }
 
-size_t solutions_required = INT_MAX;
-
 void Queens::ShowSolution()
 {
     for (int row = 0; row < size; row++) {
@@ -63,8 +61,6 @@ void Queens::ShowSolution()
             printf("%c ", (value == col ? 'Q' : '.'));
         printf("\n");
     }
-    if (num_solutions >= solutions_required)
-        exit(0);
 }
 
 int main(int argc, char *argv[])
@@ -77,7 +73,7 @@ int main(int argc, char *argv[])
     if (optind < argc)
         size = atoi(argv[optind]);
     if (optind + 1 < argc)
-        solutions_required = atoi(argv[optind+1]);
+        option.num_solutions = atoi(argv[optind+1]);
 
     Queens queens(option, size);
     queens.Solve();
