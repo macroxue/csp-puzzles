@@ -1,5 +1,5 @@
-34 34  # columns & rows
-1 1   # columns start
+34 34  # rows & columns
+1 1    # rows start
 2 2
 3 3
 2 1 1 2
@@ -33,7 +33,8 @@
 3 3
 2 2
 1 1
-1 1     # rows start
+#
+1 1    # columns start
 2 2
 3 3
 2 1 1 2
