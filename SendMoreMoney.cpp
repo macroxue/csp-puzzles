@@ -8,7 +8,7 @@
 class SendMoreMoney : public Problem<int>
 {
     public:
-        SendMoreMoney();
+        SendMoreMoney(Option option);
         void ShowSolution();
 
     private:
@@ -33,7 +33,8 @@ class SendMoreMoney : public Problem<int>
         };
 };
 
-SendMoreMoney::SendMoreMoney()
+SendMoreMoney::SendMoreMoney(Option option)
+    : Problem<int>(option)
 {
     s = v[0] = new Variable<int>(1,9);
     e = v[1] = new Variable<int>(0,9);
@@ -84,10 +85,13 @@ void SendMoreMoney::ShowSolution()
             m->GetValue(0), o->GetValue(0), n->GetValue(0), e->GetValue(0), y->GetValue(0));
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-    SendMoreMoney  puzzle;
-    puzzle.Solve(false);
+    Option option;
+    option.GetOptions(argc, argv);
+
+    SendMoreMoney  puzzle(option);
+    puzzle.Solve();
 
     return 0;
 }

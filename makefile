@@ -1,5 +1,6 @@
 CONSTRAINTS=Function.h FunctionAC.h OneToOne.h Different.h Same.h
-FRAMEWORK=Problem.h $(CONSTRAINTS) Constraint.h Variable.h Domain.h Queue.h
+FRAMEWORK=Problem.h $(CONSTRAINTS) Constraint.h Variable.h Domain.h Queue.h \
+	  Option.h
 
 PUZZELS=Fiver Sudoku SendMoreMoney Zebra Queens Strimko Crossword Nonogram
 

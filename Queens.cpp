@@ -9,7 +9,7 @@
 class Queens : public Problem<int>
 {
     public:
-        Queens(int size);
+        Queens(Option option, int size);
         void ShowSolution();
 
     private:
@@ -22,8 +22,8 @@ class Queens : public Problem<int>
         };
 };
 
-Queens::Queens(int size)
-    : size(size)
+Queens::Queens(Option option, int size)
+    : Problem<int>(option), size(size)
 {
     v = new Variable<int> * [size];
 
@@ -70,13 +70,17 @@ void Queens::ShowSolution()
 int main(int argc, char *argv[])
 {
     int size = 4;
-    if (argc > 1)
-        size = atoi(argv[1]);
-    if (argc > 2)
-        solutions_required = atoi(argv[2]);
 
-    Queens queens(size);
-    queens.Solve(true);
+    Option option;
+    option.sort = Option::SORT_DOMAIN_SIZE;
+    option.GetOptions(argc, argv);
+    if (optind < argc)
+        size = atoi(argv[optind]);
+    if (optind + 1 < argc)
+        solutions_required = atoi(argv[optind+1]);
+
+    Queens queens(option, size);
+    queens.Solve();
 
     return 0;
 }

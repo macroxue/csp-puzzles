@@ -9,7 +9,7 @@ const int MAX_SIZE = 64;
 class Fiver : public Problem<bool>
 {
     public:
-        Fiver(int size);
+        Fiver(Option option, int size);
         void ShowSolution();
 
     private:
@@ -22,8 +22,8 @@ class Fiver : public Problem<bool>
         };
 };
 
-Fiver::Fiver(int size)
-    : size(size)
+Fiver::Fiver(Option option, int size)
+    : Problem<bool>(option), size(size)
 {
     // Variables
     bool domain[2] = { false, true };
@@ -65,15 +65,18 @@ void Fiver::ShowSolution()
 int main(int argc, char *argv[])
 {
     int size = 4;
-    if (argc > 1)
-        size = atoi(argv[1]);
+
+    Option option;
+    option.GetOptions(argc, argv);
+    if (optind < argc)
+        size = atoi(argv[optind]);
     if (size > MAX_SIZE) {
         printf("Max size is %d\n", MAX_SIZE);
         return 1;
     }
 
-    Fiver fiver(size);
-    fiver.Solve(false);
+    Fiver puzzle(option, size);
+    puzzle.Solve();
 
     return 0;
 }

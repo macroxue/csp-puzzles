@@ -8,7 +8,7 @@
 class Sudoku : public Problem<int>
 {
     public:
-        Sudoku();
+        Sudoku(Option option);
         void ShowState(Variable<int> *current);
         void ShowSolution();
 
@@ -16,7 +16,8 @@ class Sudoku : public Problem<int>
         Variable<int>  *v[9][9];
 };
 
-Sudoku::Sudoku()
+Sudoku::Sudoku(Option option)
+    : Problem<int>(option)
 {
     // Variables 9x9
     for (int y = 0; y < 9; y++) {
@@ -111,8 +112,12 @@ void Sudoku::ShowSolution()
 
 int main(int argc, char *argv[])
 {
-    Sudoku sudoku;
-    sudoku.Solve(true);
+    Option option;
+    option.sort = Option::SORT_DOMAIN_SIZE;
+    option.GetOptions(argc, argv);
+
+    Sudoku puzzle(option);
+    puzzle.Solve();
 
     return 0;
 }

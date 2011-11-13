@@ -20,7 +20,7 @@
 class Crossword : public Problem<char>
 {
     public:
-        Crossword();
+        Crossword(Option option);
         void ShowSolution();
 
     private:
@@ -31,7 +31,8 @@ class Crossword : public Problem<char>
         };
 };
 
-Crossword::Crossword()
+Crossword::Crossword(Option option)
+    : Problem<char>(option)
 {
     // Letters as variables
     Variable<char> *l1, *l2, *l3, *l4, *l5, *l6, *l7, *l8, *l9, *l10,
@@ -105,8 +106,11 @@ void Crossword::ShowSolution()
 
 int main(int argc, char *argv[])
 {
-    Crossword puzzle;
-    puzzle.Solve(false);
+    Option option;
+    option.GetOptions(argc, argv);
+
+    Crossword puzzle(option);
+    puzzle.Solve();
 
     return 0;
 }

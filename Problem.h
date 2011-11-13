@@ -1,6 +1,7 @@
 #ifndef PROBLEM_H
 #define PROBLEM_H
 
+#include "Option.h"
 #include "Constraint.h"
 #include "Queue.h"
 
@@ -16,17 +17,19 @@ template <class T>
 class Problem 
 {
     public:
-        Problem();
+        Problem(Option option);
+        void GetOptions(int argc, char *argv[]);
         void AddConstraint(int num_variables, ...);
         void AddConstraint(Constraint<T> *constraint);
         void ActivateConstraint(Constraint<T> *constraint);
-        void Solve(bool sort);
+        void Solve();
         virtual void ShowState(Variable<T> *current);
         virtual void ShowSolution();
 
     private:
         void AddVariable(Variable<T> *variable);
         bool EnforceActiveConstraints(bool consistent);
+        bool EnforceArcConsistency(unsigned v);
         void Search(unsigned v);
         void Sort(unsigned v);
         void StartCheckpoint();
@@ -39,16 +42,16 @@ class Problem
         typedef vector< pair<Variable<T> *, int> > Storage;
         Storage                  storage;
 
-        bool                     to_sort;
-
     protected:
         int                      num_solutions;
         long                     search_count;
+
+        Option                   option;
 };
 
 template <class T>
-Problem<T>::Problem()
-    : num_solutions(0), search_count(0)
+Problem<T>::Problem(Option option)
+    : num_solutions(0), search_count(0), option(option)
 {
 }
 
@@ -95,10 +98,37 @@ bool Problem<T>::EnforceActiveConstraints(bool consistent)
 }
 
 template <class T>
-void Problem<T>::Solve(bool sort)
+bool Problem<T>::EnforceArcConsistency(unsigned v)
 {
-    to_sort = sort;
+    for (unsigned i = v; i < variables.size(); i++) {
+        Variable<T> *variable = variables[i];
+        if (variables[i]->GetDomainSize() == 1)
+            continue;
 
+        for (int j = 0; j < variables[i]->GetDomainSize(); j++) {
+            StartCheckpoint();
+
+            T value = variable->GetValue(j);
+            variable->Decide(value);
+            bool consistent = variable->PropagateDecision(NULL);
+            consistent = EnforceActiveConstraints(consistent);
+
+            RestoreCheckpoint();
+
+            if (!consistent) {
+                variable->Exclude(value);
+                j--;
+                if (variable->GetDomainSize() == 0)
+                    return false;
+            }
+        }
+    }
+    return true;
+}
+
+template <class T>
+void Problem<T>::Solve()
+{
     for (unsigned i = 0; i < constraints.size(); i++) {
         constraints[i]->UpdateBounds();
         ActivateConstraint(constraints[i]);
@@ -117,11 +147,15 @@ void Problem<T>::Solve(bool sort)
     if (!EnforceActiveConstraints(true)) 
         return;
 
+    if (option.arc_consistency && !EnforceArcConsistency(0))
+        return;
+
     storage.clear();
 
     for (unsigned i = 0; i < constraints.size(); i++)
         constraints[i]->UpdateBounds();
 
+    Sort(0);
 #ifdef VERBOSE
     ShowState(NULL);
 #endif
@@ -163,8 +197,7 @@ void Problem<T>::Search(unsigned v)
         bool consistent = variable->PropagateDecision(NULL);
         consistent = EnforceActiveConstraints(consistent);
         if (consistent) {
-            if (to_sort)
-                Sort(v + 1);
+            Sort(v + 1);
 #ifdef VERBOSE
             ShowState(variable);
 #endif
@@ -178,25 +211,26 @@ void Problem<T>::Search(unsigned v)
 }
 
 template <class T>
-struct compare_domain_size
-{
-    bool operator ()(Variable<T> *v1, Variable<T> *v2)
-    {
-        return v1->GetDomainSize() < v2->GetDomainSize();
-    }
-};
-
-template <class T>
 void Problem<T>::Sort(unsigned v)
 {
-    if (typeid(T) == typeid(bool)) {
-        for (unsigned i = v+1; i < variables.size(); i++) {
-            if (variables[v]->failures < variables[i]->failures)
-                swap(variables[v], variables[i]);
-        }
-    } else {
-        compare_domain_size<T>  compare;
-        sort(variables.begin() + v, variables.end(), compare);
+    switch (option.sort) {
+        case Option::SORT_DISABLED:
+            break;
+        case Option::SORT_DOMAIN_SIZE:
+            for (unsigned i = v+1; i < variables.size(); i++) {
+                int domain_size = variables[i]->GetDomainSize();
+                if (domain_size == 1) {
+                    swap(variables[v], variables[i]);
+                    v++;
+                } else if (variables[v]->GetDomainSize() > domain_size)
+                    swap(variables[v], variables[i]);
+            }
+            break;
+        case Option::SORT_FAILURES:
+            for (unsigned i = v+1; i < variables.size(); i++) 
+                if (variables[v]->failures < variables[i]->failures)
+                    swap(variables[v], variables[i]);
+            break;
     }
 }
 

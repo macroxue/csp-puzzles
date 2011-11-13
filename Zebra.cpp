@@ -9,7 +9,7 @@
 class Zebra : public Problem<int>
 {
     public:
-        Zebra();
+        Zebra(Option option);
         void ShowSolution();
 
     private:
@@ -60,7 +60,8 @@ const char * Zebra::value_names[25] =
     "Dog", "Fox", "Horse", "Snails", "Zebra"
 };
 
-Zebra::Zebra()
+Zebra::Zebra(Option option)
+    : Problem<int>(option)
 {
     for (int attr = 0; attr < 25; attr++) {
         v[attr] = new Variable<int>(1,5);
@@ -165,10 +166,13 @@ void Zebra::ShowSolution()
     }
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-    Zebra  puzzle;
-    puzzle.Solve(false);
+    Option option;
+    option.GetOptions(argc, argv);
+
+    Zebra  puzzle(option);
+    puzzle.Solve();
 
     return 0;
 }

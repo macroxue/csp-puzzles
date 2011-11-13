@@ -11,7 +11,7 @@ const int M = 8;
 class Strimko : public Problem<int>
 {
     public:
-        Strimko();
+        Strimko(Option option);
         void ShowSolution();
 
     private:
@@ -20,7 +20,8 @@ class Strimko : public Problem<int>
         char            layout[M*2][M*2];
 };
 
-Strimko::Strimko()
+Strimko::Strimko(Option option)
+    : Problem<int>(option)
 {
     memset(layout, ' ', sizeof(layout));
 
@@ -148,10 +149,13 @@ void Strimko::ShowSolution()
     }
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-    Strimko puzzle;
-    puzzle.Solve(true);
+    Option option;
+    option.GetOptions(argc, argv);
+
+    Strimko puzzle(option);
+    puzzle.Solve();
 
     return 0;
 }

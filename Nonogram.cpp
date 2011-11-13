@@ -9,7 +9,7 @@ using namespace std;
 class Nonogram : public Problem<bool>
 {
     public:
-        Nonogram();
+        Nonogram(Option option);
         void ShowState(Variable<bool> *);
         void ShowSolution();
 
@@ -20,7 +20,8 @@ class Nonogram : public Problem<bool>
         vector< vector<int> >  row_runs;
 };
 
-Nonogram::Nonogram()
+Nonogram::Nonogram(Option option)
+    : Problem<bool>(option)
 {
     // Read input
     char line[80];
@@ -97,8 +98,12 @@ void Nonogram::ShowSolution()
 
 int main(int argc, char *argv[])
 {
-    Nonogram puzzle;
-    puzzle.Solve(true);
+    Option option;
+    option.sort = Option::SORT_FAILURES;
+    option.GetOptions(argc, argv);
+
+    Nonogram puzzle(option);
+    puzzle.Solve();
 
     return 0;
 }
