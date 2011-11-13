@@ -16,11 +16,11 @@ class Automaton
         struct Run {
             enum Mod { EQUAL, AT_LEAST };
 
-            T    value;
-            int  count;
-            Mod  mod;
+            T      value;
+            size_t count;
+            Mod    mod;
 
-            Run(T value, int count, Mod mod)
+            Run(T value, size_t count, Mod mod)
                 : value(value), count(count), mod(mod) {}
         };
 
@@ -35,11 +35,11 @@ class Automaton
 
         Automaton() {}
         Automaton(vector<Run> &run);
-        bool Accept(Input input[], int input_size);
+        bool Accept(Input input[], size_t input_size);
 
     private:
         struct State {
-            int              dist_to_acc; // distance to accepting state
+            size_t           dist_to_acc; // distance to accepting state
             map<T, State *>  transition;
 
             State *Transit(T value);
@@ -70,7 +70,7 @@ class Automaton
         vector<State *>     all_states;
         vector<PowerState>  power_states;
 
-        bool RejectState(int i, State *state, Input input[], int input_size);
+        bool RejectState(size_t i, State *state, Input input[], size_t input_size);
 };
 
 template <class T>
@@ -79,14 +79,14 @@ Automaton<T>::Automaton(vector<Run> &run)
     start = accept = new State;
     all_states.push_back(start);
 
-    for (unsigned i = 0; i < run.size(); i++) {
+    for (size_t i = 0; i < run.size(); i++) {
         // build alphabet
         T  value = run[i].value;
         if (find(alphabet.begin(), alphabet.end(), value) == alphabet.end())
             alphabet.push_back(value);
 
         // build finite state machine
-        for (int n = 0; n < run[i].count; n++) {
+        for (size_t n = 0; n < run[i].count; n++) {
             State *new_state = new State;
             all_states.push_back(new_state);
             accept->transition[value] = new_state;
@@ -97,20 +97,20 @@ Automaton<T>::Automaton(vector<Run> &run)
     }
 
     // caculate distance to accepting state
-    for (unsigned i = 0; i < all_states.size(); i++)
+    for (size_t i = 0; i < all_states.size(); i++)
         all_states[i]->dist_to_acc = all_states.size() - 1 - i;
     assert(accept->dist_to_acc == 0);
 }
 
 template <class T>
-bool Automaton<T>::Accept(Input input[], int input_size)
+bool Automaton<T>::Accept(Input input[], size_t input_size)
 {
     // initialize power states
     size_t new_size = input_size + 1;
     if (power_states.size() < new_size) 
         power_states.resize(new_size);
 
-    for (unsigned i = 0; i < new_size; i++) {
+    for (size_t i = 0; i < new_size; i++) {
         power_states[i].states.clear();
         power_states[i].inputs.clear();
         power_states[i].transition.clear();
@@ -119,13 +119,13 @@ bool Automaton<T>::Accept(Input input[], int input_size)
     power_states[0].states.push_back(start);
 
     // construct power states and transitions based on input
-    for (int i = 0; i < input_size; i++) {
+    for (size_t i = 0; i < input_size; i++) {
         PowerState &power_state = power_states[i];
         vector<State *> &states = power_state.states;
-        for (unsigned s = 0; s < states.size(); s++) {
+        for (size_t s = 0; s < states.size(); s++) {
             bool valid = false;
 
-            for (unsigned v = 0; v < alphabet.size(); v++) {
+            for (size_t v = 0; v < alphabet.size(); v++) {
                 T  value = alphabet[v];
                 if (input[i].decided && value != input[i].value)
                     continue;
@@ -135,7 +135,7 @@ bool Automaton<T>::Accept(Input input[], int input_size)
                     continue;
 
                 // reject state that's too far from accepting
-                int num_inputs_left = input_size - 1 - i;
+                size_t num_inputs_left = input_size - 1 - i;
                 if (next_state->dist_to_acc > num_inputs_left) 
                     continue;
 
@@ -164,7 +164,7 @@ bool Automaton<T>::Accept(Input input[], int input_size)
 }
 
 template <class T>
-bool Automaton<T>::RejectState(int i, State *state, Input input[], int input_size)
+bool Automaton<T>::RejectState(size_t i, State *state, Input input[], size_t input_size)
 {
     if (i == 0)
         return true;
@@ -173,7 +173,7 @@ bool Automaton<T>::RejectState(int i, State *state, Input input[], int input_siz
     PowerState &power_state = power_states[i];
     power_state.inputs.clear();
     vector<Transition> &transition = power_state.transition;
-    for (unsigned t = 0; t < transition.size(); t++) {
+    for (size_t t = 0; t < transition.size(); t++) {
         if (transition[t].to == state) {
             transition.erase(transition.begin() + t);
             t--;
@@ -189,10 +189,10 @@ bool Automaton<T>::RejectState(int i, State *state, Input input[], int input_siz
         input[i].decided = true;
     }
 
-    for (unsigned s = 0; s < power_state.states.size(); s++) {
+    for (size_t s = 0; s < power_state.states.size(); s++) {
         State *from_state = power_state.states[s];
         bool valid = false;
-        for (unsigned t = 0; t < transition.size(); t++) {
+        for (size_t t = 0; t < transition.size(); t++) {
             if (transition[t].from == from_state)
                 valid = true;
         }

@@ -22,7 +22,7 @@ template <class T>
 bool OneToOne<T>::OnReduced(Variable<T> *reduced)
 {
     vector<Variable<T> *>  &variables = Constraint<T>::variables;
-    int num_variables = variables.size();
+    size_t num_variables = variables.size();
 
     // Some value is in one and only one variable's domain.
     // TODO: more efficient tracking of undecided values
@@ -33,11 +33,11 @@ bool OneToOne<T>::OnReduced(Variable<T> *reduced)
         value_map[value - low] = NULL;
 
     Variable<T> *MULTIPLE = (Variable<T> *)0x1;
-    for (int i = 0; i < num_variables; i++) {
+    for (size_t i = 0; i < num_variables; i++) {
         Variable<T> *variable = variables[i];
 
-        int domain_size = variable->GetDomainSize();
-        for (int v = 0; v < domain_size; v++) {
+        size_t domain_size = variable->GetDomainSize();
+        for (size_t v = 0; v < domain_size; v++) {
             T value = variable->GetValue(v);
             if (value_map[value - low] == NULL) {
                 value_map[value - low] =  variable;

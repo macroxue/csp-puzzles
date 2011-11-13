@@ -22,7 +22,7 @@ class Constraint : public QueueObject
         Constraint();
 
         void AddVariable(Variable<T> *variable);
-        void AddVariable(int num_variables, ...);
+        void AddVariable(size_t num_variables, ...);
 
         void UpdateBounds();
         void GetBounds(T &low, T &high) const;
@@ -67,12 +67,12 @@ void Constraint<T>::AddVariable(Variable<T> *variable)
 }
 
 template <class T>
-void Constraint<T>::AddVariable(int num_variables, ...)
+void Constraint<T>::AddVariable(size_t num_variables, ...)
 {
     va_list ap;
     va_start(ap, num_variables);
 
-    for (int i = 0; i < num_variables; i++) {
+    for (size_t i = 0; i < num_variables; i++) {
         Variable<T> *variable = va_arg(ap, Variable<T> *);
         AddVariable(variable);
     }
@@ -83,7 +83,7 @@ void Constraint<T>::AddVariable(int num_variables, ...)
 template <class T>
 void Constraint<T>::UpdateBounds()
 {
-    for (unsigned i = 0; i < variables.size(); i++) {
+    for (size_t i = 0; i < variables.size(); i++) {
         T  low, high;
         variables[i]->GetDomain().GetBounds(low, high);
         if (i == 0) {

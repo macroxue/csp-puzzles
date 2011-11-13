@@ -20,7 +20,7 @@ class Domain
 
         // Domain defined by discrete values.
         Domain(const T value[]);    // Ends with 0
-        Domain(const T value[], int count);
+        Domain(const T value[], size_t count);
 
         // Domain defined by a generator function of discrete values.
         // The generator function is called repeated to produce one value at a
@@ -38,11 +38,11 @@ class Domain
         bool Contains(T value) const;
 
         // Find in the domain the position of the given value.
-        // A return value of -1 means value not found.
-        int  Find(T value) const;
+        // A return value of GetSize() means value not found.
+        size_t Find(T value) const;
 
         // Get the size of the domain.
-        int  GetSize() const;
+        size_t GetSize() const;
 
         // Get the bounds of the domain.
         // Result is undefined if domain is empty.
@@ -54,12 +54,12 @@ class Domain
         void LimitBounds(T low, T high);
 
         // Get the i-th value.
-        T    GetValue(int i) const;
-        T    operator[](int i) const;
+        T    GetValue(size_t i) const;
+        T    operator[](size_t i) const;
 
         // Erase the i-th value.
         // The previous (i+1)-th value, if exists, becomes the new i-th value.
-        void EraseValueAt(int i);
+        void EraseValueAt(size_t i);
 
         // Keep values that are in this domain or another domain.
         void Union(const Domain &domain);
@@ -71,14 +71,14 @@ class Domain
         void Differ(const Domain &domain);
 
         // Get the count to be saved in a checkpoint.
-        int  GetCount() const;
+        size_t GetCount() const;
 
         // Restore saved count from a checkpoint.
-        void SetCount(int saved_count);
+        void SetCount(size_t saved_count);
 
     private:
         vector<T> values;   // values in the domain
-        int       count;    // number of values
+        size_t    count;    // number of values
 };
 
 //
@@ -95,15 +95,15 @@ Domain<T>::Domain(T low, T high)
 template <class T>
 Domain<T>::Domain(const T values_in[])
 {
-    for (int i = 0; values_in[i]; i++)
+    for (size_t i = 0; values_in[i]; i++)
         values.push_back(values_in[i]);
     count = values.size();
 }
 
 template <class T>
-Domain<T>::Domain(const T values_in[], int count_in)
+Domain<T>::Domain(const T values_in[], size_t count_in)
 {
-    for (int i = 0; i < count_in; i++)
+    for (size_t i = 0; i < count_in; i++)
         values.push_back(values_in[i]);
     count = values.size();
 }
@@ -132,20 +132,21 @@ bool Domain<T>::IsSingle() const
 template <class T>
 bool Domain<T>::Contains(T value) const
 {
-    return Find(value) != -1;
+    return Find(value) != GetSize();
 }
 
 template <class T>
-int  Domain<T>::Find(T value) const
+size_t  Domain<T>::Find(T value) const
 {
-    for (int i = 0; i < count; i++)
+    size_t i;
+    for (i = 0; i < GetSize(); i++)
         if (values[i] == value)
-            return i;
-    return -1;
+            break;
+    return i;
 }
 
 template <class T>
-int  Domain<T>::GetSize() const
+size_t  Domain<T>::GetSize() const
 {
     return count;
 }
@@ -154,7 +155,7 @@ template <class T>
 void Domain<T>::GetBounds(T &low, T &high) const
 {
     low = high = values[0];
-    for (int i = 1; i < count; i++) {
+    for (size_t i = 1; i < count; i++) {
         if (low > values[i])
             low = values[i];
         if (high < values[i])
@@ -165,7 +166,7 @@ void Domain<T>::GetBounds(T &low, T &high) const
 template <class T>
 void Domain<T>::LimitBounds(T low, T high)
 {
-    for (int i = 0; i < count; i++) {
+    for (size_t i = 0; i < count; i++) {
         if (values[i] < low || values[i] > high) {
             EraseValueAt(i);
             i--;
@@ -174,19 +175,19 @@ void Domain<T>::LimitBounds(T low, T high)
 }
 
 template <class T>
-T    Domain<T>::GetValue(int i) const
+T    Domain<T>::GetValue(size_t i) const
 {
     return values[i];
 }
 
 template <class T>
-T    Domain<T>::operator[](int i) const
+T    Domain<T>::operator[](size_t i) const
 {
     return GetValue(i);
 }
 
 template <class T>
-void Domain<T>::EraseValueAt(int i)
+void Domain<T>::EraseValueAt(size_t i)
 {
     count--;
 
@@ -199,7 +200,7 @@ void Domain<T>::EraseValueAt(int i)
 template <class T>
 void Domain<T>::Union(const Domain &domain)
 {
-    for (int i = 0; i < domain.GetSize(); i++) {
+    for (size_t i = 0; i < domain.GetSize(); i++) {
         T  value = domain.GetValue(i);
         if (!Contains(value))
             values[count++] = value;
@@ -209,7 +210,7 @@ void Domain<T>::Union(const Domain &domain)
 template <class T>
 void Domain<T>::Intersect(const Domain &domain)
 {
-    for (int i = 0; i < GetSize(); i++) {
+    for (size_t i = 0; i < GetSize(); i++) {
         if (!domain.Contains(values[i])) {
             EraseValueAt(i);
             i--;
@@ -220,21 +221,21 @@ void Domain<T>::Intersect(const Domain &domain)
 template <class T>
 void Domain<T>::Differ(const Domain &domain)
 {
-    for (int i = 0; i < domain.GetSize(); i++) {
-        int j = Find(domain[i]);
-        if (j != -1)
+    for (size_t i = 0; i < domain.GetSize(); i++) {
+        size_t j = Find(domain[i]);
+        if (j != GetSize())
             EraseValueAt(j);
     }
 }
 
 template <class T>
-int  Domain<T>::GetCount() const
+size_t  Domain<T>::GetCount() const
 {
     return count;
 }
 
 template <class T>
-void Domain<T>::SetCount(int saved_count)
+void Domain<T>::SetCount(size_t saved_count)
 {
     count = saved_count;
 }

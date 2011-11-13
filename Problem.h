@@ -21,7 +21,7 @@ class Problem
     public:
         Problem(Option option);
         void GetOptions(int argc, char *argv[]);
-        void AddConstraint(int num_variables, ...);
+        void AddConstraint(size_t num_variables, ...);
         void AddConstraint(Constraint<T> *constraint);
         void ActivateConstraint(Constraint<T> *constraint);
         void Solve();
@@ -31,9 +31,9 @@ class Problem
     private:
         void AddVariable(Variable<T> *variable);
         bool EnforceActiveConstraints(bool consistent);
-        bool EnforceArcConsistency(unsigned v);
-        void Search(unsigned v);
-        void Sort(unsigned v);
+        bool EnforceArcConsistency(size_t v);
+        void Search(size_t v);
+        void Sort(size_t v);
         void StartCheckpoint();
         void RestoreCheckpoint();
 
@@ -41,12 +41,12 @@ class Problem
         vector<Constraint<T> *>  constraints;
         Queue<Constraint<T> *>   active_constraints;
 
-        typedef vector< pair<Variable<T> *, int> > Storage;
+        typedef vector< pair<Variable<T> *, size_t> > Storage;
         Storage                  storage;
 
     protected:
-        int                      num_solutions;
-        long                     search_count;
+        size_t                   num_solutions;
+        size_t                   search_count;
 
         Option                   option;
 };
@@ -61,7 +61,7 @@ template <class T>
 void Problem<T>::AddConstraint(Constraint<T> *constraint)
 {
     constraints.push_back(constraint);
-    for (unsigned i = 0; i < constraint->variables.size(); i++) {
+    for (size_t i = 0; i < constraint->variables.size(); i++) {
         Variable<T> *variable = constraint->variables[i];
         if (find(variables.begin(), variables.end(), variable) == variables.end())
             AddVariable(variable);
@@ -101,14 +101,14 @@ bool Problem<T>::EnforceActiveConstraints(bool consistent)
 }
 
 template <class T>
-bool Problem<T>::EnforceArcConsistency(unsigned v)
+bool Problem<T>::EnforceArcConsistency(size_t v)
 {
-    for (unsigned i = v; i < variables.size(); i++) {
+    for (size_t i = v; i < variables.size(); i++) {
         Variable<T> *variable = variables[i];
         if (variables[i]->GetDomainSize() == 1)
             continue;
 
-        for (int j = 0; j < variables[i]->GetDomainSize(); j++) {
+        for (size_t j = 0; j < variables[i]->GetDomainSize(); j++) {
             StartCheckpoint();
 
             T value = variable->GetValue(j);
@@ -132,12 +132,12 @@ bool Problem<T>::EnforceArcConsistency(unsigned v)
 template <class T>
 void Problem<T>::Solve()
 {
-    for (unsigned i = 0; i < constraints.size(); i++) {
+    for (size_t i = 0; i < constraints.size(); i++) {
         constraints[i]->UpdateBounds();
         ActivateConstraint(constraints[i]);
     }
 
-    for (unsigned i = 0; i < variables.size(); i++) {
+    for (size_t i = 0; i < variables.size(); i++) {
         if (variables[i]->GetDomainSize() == 1) {
             bool consistent = variables[i]->PropagateDecision(NULL);
             if (!consistent)
@@ -155,7 +155,7 @@ void Problem<T>::Solve()
 
     storage.clear();
 
-    for (unsigned i = 0; i < constraints.size(); i++)
+    for (size_t i = 0; i < constraints.size(); i++)
         constraints[i]->UpdateBounds();
 
     Sort(0);
@@ -164,7 +164,7 @@ void Problem<T>::Solve()
 }
 
 template <class T>
-void Problem<T>::Search(unsigned v)
+void Problem<T>::Search(size_t v)
 {
     search_count++;
 
@@ -172,7 +172,7 @@ void Problem<T>::Search(unsigned v)
     while (v < variables.size() && variables[v]->GetDomainSize() == 1) v++;
     if (v == variables.size()) {
         num_solutions++;
-        printf("----- Solution %d after %ld searches -----\n",
+        printf("----- Solution %ld after %ld searches -----\n",
                 num_solutions, search_count);
         ShowSolution();
         return;
@@ -202,14 +202,14 @@ void Problem<T>::Search(unsigned v)
 }
 
 template <class T>
-void Problem<T>::Sort(unsigned v)
+void Problem<T>::Sort(size_t v)
 {
     switch (option.sort) {
         case Option::SORT_DISABLED:
             break;
         case Option::SORT_DOMAIN_SIZE:
-            for (unsigned i = v+1; i < variables.size(); i++) {
-                int domain_size = variables[i]->GetDomainSize();
+            for (size_t i = v+1; i < variables.size(); i++) {
+                size_t domain_size = variables[i]->GetDomainSize();
                 if (domain_size == 1) {
                     swap(variables[v], variables[i]);
                     v++;
@@ -218,7 +218,7 @@ void Problem<T>::Sort(unsigned v)
             }
             break;
         case Option::SORT_FAILURES:
-            for (unsigned i = v+1; i < variables.size(); i++) 
+            for (size_t i = v+1; i < variables.size(); i++) 
                 if (variables[v]->failures < variables[i]->failures)
                     swap(variables[v], variables[i]);
             break;
@@ -235,7 +235,7 @@ template <class T>
 void Problem<T>::RestoreCheckpoint()
 {
     for (;;) {
-        pair<Variable<T> *, int> &state = storage.back();
+        pair<Variable<T> *, size_t> &state = storage.back();
         if (state.first) {
             state.first->Restore(state.second);
             storage.pop_back();
@@ -249,9 +249,9 @@ void Problem<T>::RestoreCheckpoint()
 template <class T>
 void Problem<T>::ShowState(Variable<T> *current)
 {
-    for (unsigned i = 0; i < variables.size(); i++) {
+    for (size_t i = 0; i < variables.size(); i++) {
         printf("[ ");
-        for (int v = 0; v < variables[i]->GetDomainSize(); v++) 
+        for (size_t v = 0; v < variables[i]->GetDomainSize(); v++) 
             printf("%d ", variables[i]->GetValue(v));
         printf("]");
         putchar(variables[i] == current ? '*' : ' ');
@@ -262,7 +262,7 @@ void Problem<T>::ShowState(Variable<T> *current)
 template <class T>
 void Problem<T>::ShowSolution()
 {
-    printf("----- Solution %d -----\n", num_solutions);
+    printf("----- Solution %ld -----\n", num_solutions);
     ShowState(NULL);
 }
 

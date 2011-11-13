@@ -27,12 +27,12 @@ template <class T, class F>
 bool Function<T,F>::OnDecided(Variable<T> *decided)
 {
     vector<Variable<T> *>  &variables = Constraint<T>::variables;
-    int num_variables = variables.size();
-    int num_decided = 0;
-    int undecided_index = 0;
+    size_t num_variables = variables.size();
+    size_t num_decided = 0;
+    size_t undecided_index = 0;
 
     T values[num_variables];
-    for (int i = 0; i < num_variables; i++) {
+    for (size_t i = 0; i < num_variables; i++) {
         if (variables[i]->GetDomainSize() == 1) {
             values[i] = variables[i]->GetValue(0);
             num_decided++;
@@ -54,20 +54,20 @@ bool Function<T,F>::OnDecided(Variable<T> *decided)
     // Only one variable is undecided. Apply the constraint.
     Variable<T> *undecided = variables[undecided_index];
 
-    int old_domain_size = undecided->GetDomainSize();
-    int num_bad_values = 0;
+    size_t old_domain_size = undecided->GetDomainSize();
+    size_t num_bad_values = 0;
     T   bad_values[old_domain_size];
-    for (int i = 0; i < undecided->GetDomainSize(); i++) {
+    for (size_t i = 0; i < undecided->GetDomainSize(); i++) {
         T value = undecided->GetValue(i);
         values[undecided_index] = value;
         bool consistent = condition_fn(num_variables, values, target);
         if (!consistent)
             bad_values[num_bad_values++] = value;
     }
-    for (int i = 0; i < num_bad_values; i++)
+    for (size_t i = 0; i < num_bad_values; i++)
         undecided->Exclude(bad_values[i]);
 
-    int new_domain_size = undecided->GetDomainSize();
+    size_t new_domain_size = undecided->GetDomainSize();
     if (new_domain_size == 0)
         return false;
 

@@ -31,13 +31,13 @@ template <class T, class O, class I>
 bool FunctionAC<T, O, I>::OnDecided(Variable<T> *decided)
 {
     vector<Variable<T> *>  &variables = Constraint<T>::variables;
-    int num_variables = variables.size();
-    int num_decided = 0;
-    int undecided_index = 0;
+    size_t num_variables = variables.size();
+    size_t num_decided = 0;
+    size_t undecided_index = 0;
 
     O   op;
     T   result = 0;
-    for (int i = 0; i < num_variables; i++) {
+    for (size_t i = 0; i < num_variables; i++) {
         if (variables[i]->GetDomainSize() == 1) {
             T value = variables[i]->GetValue(0);
             result = op(result, value);

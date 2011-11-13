@@ -22,22 +22,22 @@ bool Consecutive<T>::OnDecided(Variable<T> *decided)
 
     // Remove used value from other variables' domains
     vector<Variable<T> *>  &variables = Constraint<T>::variables;
-    int num_variables = variables.size();
-    int value = decided->GetValue(0);
+    size_t num_variables = variables.size();
+    size_t value = decided->GetValue(0);
 
-    int offset = 0;
-    for (int i = 0; i < num_variables; i++)
+    size_t offset = 0;
+    for (size_t i = 0; i < num_variables; i++)
         if (variables[i] == decided) {
             offset = i;
             break;
         }
 
-    for (int i = 0; i < num_variables; i++) {
+    for (size_t i = 0; i < num_variables; i++) {
         if (variables[i] == decided) continue;
 
-        int old_domain_size = variables[i]->GetDomainSize();
+        size_t old_domain_size = variables[i]->GetDomainSize();
         variables[i]->Decide(value - offset + i);
-        int new_domain_size = variables[i]->GetDomainSize();
+        size_t new_domain_size = variables[i]->GetDomainSize();
 
         if (new_domain_size == 0)
             return false;

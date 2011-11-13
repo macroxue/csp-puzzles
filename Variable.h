@@ -16,14 +16,14 @@ class Variable
     public:
         Variable(T low, T high);
         Variable(const T value[]);
-        Variable(const T value[], int count);
+        Variable(const T value[], size_t count);
         Variable(bool (*generator_fn)(void *, T &), void *cookie);
         void Init();
 
         void SetName(const char *name);
         const char *GetName() const;
-        void SetId(int id);
-        int  GetId() const;
+        void SetId(size_t id);
+        size_t GetId() const;
 
         void AddConstraint(Constraint<T> *constraint);
         bool PropagateDecision(Constraint<T> *start);
@@ -32,26 +32,26 @@ class Variable
         void Decide(T value);
         bool Exclude(T value);
 
-        T    GetValue(int i) const;
-        int  GetDomainSize() const;
+        T    GetValue(size_t i) const;
+        size_t GetDomainSize() const;
         const Domain<T> & GetDomain() const;
         void  ShowDomain() const;
         vector<Constraint<T> *> & GetConstraints();
 
-        typedef vector< pair<Variable<T> *, int> > Storage;
+        typedef vector< pair<Variable<T> *, size_t> > Storage;
         void SetStorage(Storage *storage);
         void Checkpoint();
-        void Restore(int count);
+        void Restore(size_t count);
 
     private:
         Domain<T>                domain;
         vector<Constraint<T> *>  constraints;
         Storage *                storage;
         const char *             name;
-        int                      id;
+        size_t                      id;
 
     public:
-        int                      failures;
+        size_t                      failures;
 };
 
 #include "Constraint.h"
@@ -72,7 +72,7 @@ Variable<T>::Variable(const T value[])
 }
 
 template <class T>
-Variable<T>::Variable(const T value[], int count)
+Variable<T>::Variable(const T value[], size_t count)
     : domain(value, count), name("")
 {
     Init();
@@ -105,13 +105,13 @@ const char *Variable<T>::GetName() const
 }
 
 template <class T>
-void Variable<T>::SetId(int id_in)
+void Variable<T>::SetId(size_t id_in)
 {
     id = id_in;
 }
 
 template <class T>
-int  Variable<T>::GetId() const
+size_t  Variable<T>::GetId() const
 {
     return id;
 }
@@ -125,7 +125,7 @@ void Variable<T>::AddConstraint(Constraint<T> *constraint)
 template <class T>
 bool Variable<T>::PropagateDecision(Constraint<T> *start)
 {
-    for (unsigned i = 0; i < constraints.size(); i++) {
+    for (size_t i = 0; i < constraints.size(); i++) {
         if (constraints[i] == start) continue;
 
         bool consistent = constraints[i]->OnDecided(this);
@@ -138,7 +138,7 @@ bool Variable<T>::PropagateDecision(Constraint<T> *start)
 template <class T>
 bool Variable<T>::PropagateReduction(Constraint<T> *start)
 {
-    for (unsigned i = 0; i < constraints.size(); i++) {
+    for (size_t i = 0; i < constraints.size(); i++) {
         if (constraints[i] == start)
             continue;
 
@@ -166,8 +166,8 @@ void Variable<T>::Decide(T value)
 template <class T>
 bool Variable<T>::Exclude(T value)
 {
-    int pos = domain.Find(value);
-    if (pos != -1) {
+    size_t pos = domain.Find(value);
+    if (pos != domain.GetSize()) {
         OnUpdate();
         domain.EraseValueAt(pos);
         return true;
@@ -176,13 +176,13 @@ bool Variable<T>::Exclude(T value)
 }
 
 template <class T>
-T    Variable<T>::GetValue(int i) const
+T    Variable<T>::GetValue(size_t i) const
 {
     return domain[i];
 }
 
 template <class T>
-int  Variable<T>::GetDomainSize() const
+size_t  Variable<T>::GetDomainSize() const
 {
     return domain.GetSize();
 }
@@ -196,8 +196,8 @@ const Domain<T> & Variable<T>::GetDomain() const
 template <class T>
 void Variable<T>::ShowDomain() const
 {
-    printf("Variable %d = { ", GetId());
-    for (int i = 0; i < GetDomainSize(); i++)
+    printf("Variable %ld = { ", GetId());
+    for (size_t i = 0; i < GetDomainSize(); i++)
         printf("%d ", GetValue(i));
     printf("}\n");
 }
@@ -221,7 +221,7 @@ void Variable<T>::Checkpoint()
 }
 
 template <class T>
-void Variable<T>::Restore(int count)
+void Variable<T>::Restore(size_t count)
 {
     domain.SetCount(count);
 }

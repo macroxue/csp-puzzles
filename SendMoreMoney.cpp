@@ -46,7 +46,7 @@ SendMoreMoney::SendMoreMoney(Option option)
     y = v[7] = new Variable<int>(0,9);
 
     Different<int> *different = new Different<int>();
-    for (unsigned i = 0; i < 8; i++)
+    for (int i = 0; i < 8; i++)
         different->AddVariable(v[i]);
     AddConstraint(different);
 
@@ -55,7 +55,7 @@ SendMoreMoney::SendMoreMoney(Option option)
     AddConstraint(sum_partial);
 
     Function<int, Sum> *sum = new Function<int, Sum>(0);
-    for (unsigned i = 0; i < 8; i++)
+    for (int i = 0; i < 8; i++)
         sum->AddVariable(v[i]);
     AddConstraint(sum);
 }

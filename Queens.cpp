@@ -53,7 +53,7 @@ bool Queens::Safe::operator()(int count, const int values[], int distance)
     return abs(values[0] - values[1]) != distance;
 }
 
-int solutions_required = INT_MAX;
+size_t solutions_required = INT_MAX;
 
 void Queens::ShowSolution()
 {

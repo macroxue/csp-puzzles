@@ -25,7 +25,7 @@ RunLength::RunLength(vector<int> & length)
     typedef Automaton<bool>::Run   Run;
     vector<Run> run;
 
-    for (unsigned i = 0; i < length.size(); i++) {
+    for (size_t i = 0; i < length.size(); i++) {
         run.push_back(Run(false, i != 0, Run::AT_LEAST));
         run.push_back(Run(true, length[i], Run::EQUAL));
     }
@@ -42,12 +42,12 @@ bool RunLength::OnDecided(Variable<bool> *decided)
 bool RunLength::Enforce()
 {
     vector<Variable<bool> *>  &variables = Constraint<bool>::variables;
-    int num_variables = variables.size();
+    size_t num_variables = variables.size();
 
     typedef Automaton<bool>::Input Input;
     Input input[num_variables];
 
-    for (int i = 0; i < num_variables; i++) {
+    for (size_t i = 0; i < num_variables; i++) {
         if (variables[i]->GetDomainSize() == 1) {
             input[i].value = variables[i]->GetValue(0);
             input[i].decided = true;
@@ -60,9 +60,9 @@ bool RunLength::Enforce()
     if (!accepted)
         return false;
 
-    int num_decided = 0;
-    int decided_index[num_variables];
-    for (int i = 0; i < num_variables; i++) {
+    size_t num_decided = 0;
+    size_t decided_index[num_variables];
+    for (size_t i = 0; i < num_variables; i++) {
         if (variables[i]->GetDomainSize() > 1 && input[i].decided) {
             variables[i]->Decide(input[i].value);
 
@@ -70,10 +70,10 @@ bool RunLength::Enforce()
         }
     }
 
-    for (int i = 0; i < num_decided; i++) {
+    for (size_t i = 0; i < num_decided; i++) {
         vector<Constraint<bool>*> &constraints = 
             variables[ decided_index[i] ]->GetConstraints();
-        for (unsigned j = 0; j < constraints.size(); j++) {
+        for (size_t j = 0; j < constraints.size(); j++) {
             if (constraints[j] == this)
                 continue;
 #if 1
