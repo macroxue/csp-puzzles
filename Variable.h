@@ -31,6 +31,7 @@ class Variable
         void OnUpdate();
         void Decide(T value);
         bool Exclude(T value);
+        void ExcludeAt(size_t i);
 
         T    GetValue(size_t i) const;
         size_t GetDomainSize() const;
@@ -168,11 +169,17 @@ bool Variable<T>::Exclude(T value)
 {
     size_t pos = domain.Find(value);
     if (pos != domain.GetSize()) {
-        OnUpdate();
-        domain.EraseValueAt(pos);
+        ExcludeAt(pos);
         return true;
     } else
         return false;
+}
+
+template <class T>
+void Variable<T>::ExcludeAt(size_t i)
+{
+    OnUpdate();
+    domain.EraseValueAt(i);
 }
 
 template <class T>

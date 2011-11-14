@@ -53,34 +53,23 @@ bool Function<T,F>::OnDecided(Variable<T> *decided)
 
     // Only one variable is undecided. Apply the constraint.
     Variable<T> *undecided = variables[undecided_index];
-
-    size_t old_domain_size = undecided->GetDomainSize();
-    size_t num_bad_values = 0;
-    T   bad_values[old_domain_size];
     for (size_t i = 0; i < undecided->GetDomainSize(); i++) {
         T value = undecided->GetValue(i);
         values[undecided_index] = value;
         bool consistent = condition_fn(num_variables, values, target);
-        if (!consistent)
-            bad_values[num_bad_values++] = value;
-    }
-    for (size_t i = 0; i < num_bad_values; i++)
-        undecided->Exclude(bad_values[i]);
-
-    size_t new_domain_size = undecided->GetDomainSize();
-    if (new_domain_size == 0)
-        return false;
-
-    if (old_domain_size > 1 && new_domain_size == 1) {
-        // One constraint can decide multiple variables.
-        // TODO: If there are two variables, this constraint can't be reused.
-        //bool consistent = undecided->PropagateDecision((num_variables == 2) ? this : NULL);
-        bool consistent = undecided->PropagateDecision(NULL);
-        if (!consistent)
-            return false;
+        if (!consistent) {
+            undecided->ExcludeAt(i);
+            i--;
+        }
     }
 
-    return true;
+    switch (undecided->GetDomainSize()) {
+        case 0:  return false;
+                 // One constraint can only decide at most one variable,
+                 // so exclude it from propagation.
+        case 1:  return undecided->PropagateDecision(this);
+        default: return true;
+    }
 }
 
 #endif
