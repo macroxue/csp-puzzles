@@ -60,28 +60,15 @@ bool RunLength::Enforce()
     if (!accepted)
         return false;
 
-    size_t num_decided = 0;
-    size_t decided_index[num_variables];
     for (size_t i = 0; i < num_variables; i++) {
         if (variables[i]->GetDomainSize() > 1 && input[i].decided) {
             variables[i]->Decide(input[i].value);
 
-            decided_index[num_decided++] = i;
-        }
-    }
-
-    for (size_t i = 0; i < num_decided; i++) {
-        vector<Constraint<bool>*> &constraints = 
-            variables[ decided_index[i] ]->GetConstraints();
-        for (size_t j = 0; j < constraints.size(); j++) {
-            if (constraints[j] == this)
-                continue;
-#if 1
-            problem->ActivateConstraint(constraints[j]);
-#else
-            if (!constraints[j]->OnDecided(variables[i]))
-                return false;
-#endif
+            vector<Constraint<bool>*> &constraints = variables[i]->GetConstraints();
+            for (size_t j = 0; j < constraints.size(); j++) {
+                if (constraints[j] != this)
+                    problem->ActivateConstraint(constraints[j]);
+            }
         }
     }
 
