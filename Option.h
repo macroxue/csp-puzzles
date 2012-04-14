@@ -10,6 +10,7 @@ struct Option
 {
     bool    arc_consistency;
     bool    debug;
+    bool    interactive;
     size_t  num_solutions;
     enum sort_t { SORT_DISABLED, SORT_DOMAIN_SIZE, SORT_FAILURES };
     sort_t  sort;
@@ -22,6 +23,7 @@ Option::Option()
 {
     arc_consistency = false;
     debug           = false;
+    interactive     = false;
     num_solutions   = INT_MAX;
     sort            = SORT_DISABLED;
 }

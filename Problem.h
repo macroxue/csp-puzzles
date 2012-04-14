@@ -73,8 +73,10 @@ Problem<T>::Problem(Option option)
 template <class T>
 Problem<T>::~Problem()
 {
-    finish = seconds();
-    printf("Total time = %.3fs\n", finish - start);
+    if (!option.interactive) {
+        finish = seconds();
+        printf("Total time = %.3fs\n", finish - start);
+    }
 }
 
 template <class T>
@@ -184,7 +186,12 @@ void Problem<T>::Solve()
 
     Sort(0);
     DEBUG( ShowState(NULL) );
-    Search(0);
+
+    try {
+        Search(0);
+    } catch (bool result) {
+        ;
+    }
 }
 
 template <class T>
@@ -200,8 +207,7 @@ void Problem<T>::Search(size_t v)
                 num_solutions, search_count, seconds() - start);
         ShowSolution();
         if (num_solutions >= option.num_solutions) {
-            this->~Problem();
-            exit(0);
+            throw true;
         }
         return;
     }
