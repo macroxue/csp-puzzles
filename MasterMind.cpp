@@ -50,14 +50,14 @@ struct Code {
     }
 };
 
+Code target;
 Code guesses[MAX_GUESSES];
 int  num_guesses = 0;
 
 class MasterMind : public Problem<int>
 {
     public:
-        MasterMind(Option option, int num_pegs, int num_colors,
-                int num_guesses, Code guesses[]);
+        MasterMind(Option option, int num_pegs, int num_colors);
         void ShowSolution();
 
     private:
@@ -71,8 +71,7 @@ class MasterMind : public Problem<int>
         };
 };
 
-MasterMind::MasterMind(Option option, int num_pegs, int num_colors,
-        int num_guesses, Code guesses[])
+MasterMind::MasterMind(Option option, int num_pegs, int num_colors)
     : Problem<int>(option), num_pegs(num_pegs), num_colors(num_colors)
 {
     v = new Variable<int> * [num_pegs];
@@ -86,18 +85,11 @@ MasterMind::MasterMind(Option option, int num_pegs, int num_colors,
     for (int i = 0; i < num_pegs; i++)
         c->AddVariable(v[i]);
     AddConstraint(c);
-
-    // Add guesses as constraints
-    for (int i = 0; i < num_guesses; i++) {
-        Function<int, Match> *match = new Function<int, Match>(i);
-        for (int i = 0; i < num_pegs; i++)
-            match->AddVariable(v[i]);
-        AddConstraint(match);
-    }
 }
 
 void MasterMind::ShowSolution()
 {
+    printf("Guess #%d: ", num_guesses+1);
     Code &guess = guesses[num_guesses];
     for (int i = 0; i < num_pegs; i++) {
         int value = v[i]->GetValue(0);
@@ -105,6 +97,27 @@ void MasterMind::ShowSolution()
         guess.pegs[i] = value;
     }
     num_guesses++;
+
+    // Get match counts
+    if (auto_play) {
+        target.Match(guess.pegs, guess.num_correct, guess.num_incorrect);
+        printf("--> %d%d\n", guess.num_correct, guess.num_incorrect);
+    } else {
+        printf("--> ");
+        int num_items;
+        do num_items = scanf("%1d%1d", &guess.num_correct, &guess.num_incorrect);
+        while (num_items != 2);
+    }
+    if (guess.num_correct == num_pegs) {
+        printf("Great! I solved the puzzle in %d guesses.\n", num_guesses);
+        option.num_solutions = 1;
+    } else {
+        // Add guesses as constraints
+        Function<int, Match> *match = new Function<int, Match>(num_guesses-1);
+        for (int i = 0; i < num_pegs; i++)
+            match->AddVariable(v[i]);
+        AddConstraint(match);
+    }
 }
 
 bool MasterMind::Match::operator()(int count, const int values[], int guess_id)
@@ -120,7 +133,6 @@ int main(int argc, char *argv[])
     Option option;
     option.GetOptions(argc, argv);
     option.interactive   = true;
-    option.num_solutions = 1;
     if (optind < argc)
         num_pegs = atoi(argv[optind]);
     if (optind + 1 < argc)
@@ -132,40 +144,20 @@ int main(int argc, char *argv[])
 
     int total_guesses = 0, max_guesses = 0;
     for (int game = 1; game <= 1000; game++) {
-        Code target;
         target.Randomize();
         num_guesses = 0;
-        for (int round = 1; ; round++) {
-            // Guess
-            printf("Guess #%d: ", round);
-            MasterMind puzzle(option, num_pegs, num_colors, num_guesses, guesses);
-            puzzle.Solve();
-            if (num_guesses < round) {
-                printf("No solution.\n");
-                break;
-            }
+        MasterMind puzzle(option, num_pegs, num_colors);
+        puzzle.Solve();
 
-            // Get match counts
-            Code &guess = guesses[num_guesses-1];
-            if (auto_play) {
-                target.Match(guess.pegs, guess.num_correct, guess.num_incorrect);
-                printf("--> %d%d\n", guess.num_correct, guess.num_incorrect);
-            } else {
-                printf("--> ");
-                int num_items;
-                do num_items = scanf("%1d%1d", &guess.num_correct, &guess.num_incorrect);
-                while (num_items != 2);
-            }
-            if (guess.num_correct == num_pegs) {
-                printf("Great! I solved the puzzle in %d guesses.\n", round);
-                total_guesses += round;
-                if (max_guesses < round)
-                    max_guesses = round;
-                break;
-            }
+        if (guesses[num_guesses-1].num_correct < num_pegs) {
+            printf("No solution.\n");
+        } else {
+            total_guesses += num_guesses;
+            if (max_guesses < num_guesses)
+                max_guesses = num_guesses;
+            printf("%d games played, average guesses = %.2f, maximum guesses = %d\n",
+                    game, (double)total_guesses/game, max_guesses);
         }
-        printf("%d games played, average guesses = %.2f, maximum guesses = %d\n",
-                game, (double)total_guesses/game, max_guesses);
     }
 
     return 0;
