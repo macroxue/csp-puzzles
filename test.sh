@@ -14,4 +14,7 @@ done
 for INPUT in nonogram.in*; do
     time Nonogram < $INPUT
 done
+for INPUT in kakuro.in*; do
+    time Kakuro < $INPUT
+done
 

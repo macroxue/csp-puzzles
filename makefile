@@ -2,15 +2,15 @@ CONSTRAINTS=Function.h FunctionAC.h OneToOne.h Different.h Same.h
 FRAMEWORK=Problem.h $(CONSTRAINTS) Constraint.h Variable.h Domain.h Queue.h \
 	  Option.h
 
-PUZZELS=Fiver Sudoku SendMoreMoney Zebra Queens Strimko Crossword Nonogram \
-        MasterMind
+PUZZLES=Fiver Sudoku SendMoreMoney Zebra Queens Strimko Crossword Nonogram \
+        MasterMind Kakuro
 
 OPTS=-Wall -O3
 
-all: $(PUZZELS)
+all: $(PUZZLES)
 
 clean:
-	rm -f $(PUZZELS)
+	rm -f $(PUZZLES)
 
 test:
 	./test.sh 2>&1 | tee test.out
@@ -41,3 +41,7 @@ Nonogram: Nonogram.cpp $(FRAMEWORK) RunLength.h Automaton.h
 
 MasterMind: MasterMind.cpp $(FRAMEWORK)
 	g++ $(OPTS) -o $@ $(filter %.cpp,$^) 
+
+Kakuro: Kakuro.cpp $(FRAMEWORK)
+	g++ $(OPTS) -o $@ $(filter %.cpp,$^) 
+

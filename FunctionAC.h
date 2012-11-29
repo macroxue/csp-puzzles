@@ -60,9 +60,10 @@ bool FunctionAC<T, O, I>::OnDecided(Variable<T> *decided)
     I  inverse_op;
     T  target_value = inverse_op(target, result);
 
-    // Target value must be in the domain. No need to check.
-    // TODO: true?
+    // Target value may not be in the domain. Need to check.
     undecided->Decide(target_value);
+    if (undecided->GetDomainSize() == 0)
+        return false;
 
     // One constraint can only decide at most one variable,
     // so exclude it from propagation.

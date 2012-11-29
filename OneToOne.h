@@ -3,7 +3,6 @@
 
 #include "Different.h"
 
-#include <map>
 using namespace std;;
 
 //
