@@ -121,29 +121,40 @@ bool Problem<T>::EnforceActiveConstraints(bool consistent)
 template <class T>
 bool Problem<T>::EnforceArcConsistency(size_t v)
 {
-    for (size_t i = v; i < variables.size(); i++) {
-        Variable<T> *variable = variables[i];
-        if (variables[i]->GetDomainSize() == 1)
-            continue;
-
-        for (size_t j = 0; j < variables[i]->GetDomainSize(); j++) {
-            StartCheckpoint();
-
-            T value = variable->GetValue(j);
-            variable->Decide(value);
-            bool consistent = variable->PropagateDecision(NULL);
-            consistent = EnforceActiveConstraints(consistent);
-
-            RestoreCheckpoint();
-
-            if (!consistent) {
-                variable->Exclude(value);
-                j--;
-                if (variable->GetDomainSize() == 0)
-                    return false;
+    bool domain_reduced;
+    do {
+        domain_reduced = false;
+        for (size_t i = v; i < variables.size(); i++) {
+            Variable<T> *variable = variables[i];
+            if (variable->GetDomainSize() == 1) {
+                swap(variables[i], variables[v]);
+                v++;
             }
         }
-    }
+
+        for (size_t i = v; i < variables.size(); i++) {
+            Sort(i);
+            Variable<T> *variable = variables[i];
+            for (size_t j = 0; j < variable->GetDomainSize(); j++) {
+                StartCheckpoint();
+
+                T value = variable->GetValue(j);
+                variable->Decide(value);
+                bool consistent = variable->PropagateDecision(NULL);
+                consistent = EnforceActiveConstraints(consistent);
+
+                RestoreCheckpoint();
+
+                if (!consistent) {
+                    variable->Exclude(value);
+                    j--;
+                    if (variable->GetDomainSize() == 0)
+                        return false;
+                    domain_reduced = true;
+                }
+            }
+        }
+    } while (domain_reduced);
     return true;
 }
 
