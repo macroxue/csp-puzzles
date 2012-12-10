@@ -36,9 +36,6 @@ class Constraint : public QueueObject
 
         Problem<T> *GetProblem() const { return problem; }
 
-        bool IsActive() { return active; }
-        void SetActive(bool is_active) { active = is_active; }
-
     protected:
         vector<Variable<T> *>  variables;
 

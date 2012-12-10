@@ -95,11 +95,8 @@ void Problem<T>::AddConstraint(Constraint<T> *constraint)
 template <class T>
 void Problem<T>::ActivateConstraint(Constraint<T> *constraint)
 {
-    if (constraint->IsActive())
-        return;
-
-    constraint->SetActive(true);
-    active_constraints.Enqueue(constraint);
+    if (!constraint->in_queue)
+        active_constraints.Enqueue(constraint);
 }
 
 template <class T>
@@ -115,7 +112,6 @@ bool Problem<T>::EnforceActiveConstraints(bool consistent)
 {
     while (!active_constraints.IsEmpty()) {
         Constraint<T> *constraint = active_constraints.Dequeue();
-        constraint->SetActive(false);
         if (consistent)
             consistent = constraint->Enforce();
     }

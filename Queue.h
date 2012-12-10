@@ -5,6 +5,9 @@ struct QueueObject
 {
     QueueObject *prev;
     QueueObject *next;
+    bool         in_queue;
+
+    QueueObject() : prev(NULL), next(NULL), in_queue(false) { }
 };
 
 template <typename T>
@@ -38,6 +41,7 @@ void Queue<T>::Enqueue(QueueObject* obj)
     else
         tail->next = obj;
     tail = obj;
+    obj->in_queue = true;
 }
 
 template <typename T>
@@ -49,6 +53,7 @@ T    Queue<T>::Dequeue()
         tail = NULL;
     else
         head->prev = NULL;
+    obj->in_queue = false;
     return (T)obj;
 }
 
