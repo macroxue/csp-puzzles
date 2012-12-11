@@ -24,13 +24,13 @@ Option::Option()
     arc_consistency = false;
     debug           = false;
     interactive     = false;
-    num_solutions   = INT_MAX;
+    num_solutions   = 2;
     sort            = SORT_DISABLED;
 }
 
 void Option::GetOptions(int argc, char *argv[])
 {
-    char c;
+    int c;
     while ((c = getopt(argc, argv, "adn:s:")) != -1) {
         switch (c) {
             case 'a': arc_consistency = true; break;

@@ -213,7 +213,7 @@ void Problem<T>::Search(size_t v)
         printf("----- Solution %ld after %ld searches and %.3fs -----\n",
                 num_solutions, search_count, seconds() - start);
         ShowSolution();
-        if (num_solutions >= option.num_solutions) {
+        if (option.num_solutions > 0 && num_solutions >= option.num_solutions) {
             throw true;
         }
         return;
