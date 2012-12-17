@@ -34,11 +34,13 @@ RunLength::RunLength(vector<int> & length)
     new (&automaton) Automaton<bool,2>(run);
 }
 
+inline
 bool RunLength::OnDecided(Variable<bool> *decided)
 {
     return Enforce();
 }
 
+inline
 bool RunLength::Enforce()
 {
     vector<Variable<bool> *>  &variables = Constraint<bool>::variables;
