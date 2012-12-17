@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include "Automaton.h"
 
-typedef Automaton<bool>::Run   Run;
-typedef Automaton<bool>::Input Input;
+typedef Automaton<bool,2>::Run   Run;
+typedef Automaton<bool,2>::Input Input;
 
-void test(Automaton<bool> &a, Input input[], size_t input_size)
+void test(Automaton<bool,2> &a, Input input[], size_t input_size)
 {
     bool accepted = a.Accept(input, input_size);
 
@@ -26,7 +26,7 @@ int main()
     run.push_back(Run(true,  4, Run::EQUAL));
     run.push_back(Run(false, 0, Run::AT_LEAST));
 
-    Automaton<bool> a(run);
+    Automaton<bool,2> a(run);
     const size_t MAX_LEN = 12;
     Input input[MAX_LEN];
 

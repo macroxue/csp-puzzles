@@ -4,11 +4,10 @@
 #include <assert.h>
 
 #include <algorithm>
-#include <map>
 #include <vector>
 using namespace std;
 
-template <class T>
+template <class T, size_t N>
 class Automaton
 {
     public:
@@ -40,8 +39,9 @@ class Automaton
     private:
         struct State {
             size_t           dist_to_acc; // distance to accepting state
-            map<T, State *>  transition;
+            State *          transition[N];
 
+            State();
             State *Transit(T value);
         }; 
 
@@ -56,7 +56,8 @@ class Automaton
 
         struct PowerState {
             vector<State *>        states;
-            vector<T>              inputs;
+            size_t                 num_inputs;
+            T                      inputs[N];
             vector<Transition>     transition;
 
             void AddState(State *state);
@@ -64,7 +65,8 @@ class Automaton
             void AddTransition(State *from, State *to, T value);
         };
 
-        vector<T>           alphabet;
+        size_t              alphabet_size;
+        T                   alphabet[N];
         State             * start;
         State             * accept;
         vector<State *>     all_states;
@@ -73,17 +75,22 @@ class Automaton
         bool RejectState(size_t i, State *state, Input input[], size_t input_size);
 };
 
-template <class T>
-Automaton<T>::Automaton(vector<Run> &run)
+template <class T, size_t N>
+Automaton<T,N>::Automaton(vector<Run> &run)
 {
     start = accept = new State;
     all_states.push_back(start);
+    alphabet_size = 0;
 
     for (size_t i = 0; i < run.size(); i++) {
         // build alphabet
         T  value = run[i].value;
-        if (find(alphabet.begin(), alphabet.end(), value) == alphabet.end())
-            alphabet.push_back(value);
+        size_t j;
+        for (j = 0; j < alphabet_size; j++)
+            if (alphabet[j] == value)
+                break;
+        if (j == alphabet_size)
+            alphabet[alphabet_size++] = value;
 
         // build finite state machine
         for (size_t n = 0; n < run[i].count; n++) {
@@ -102,8 +109,8 @@ Automaton<T>::Automaton(vector<Run> &run)
     assert(accept->dist_to_acc == 0);
 }
 
-template <class T>
-bool Automaton<T>::Accept(Input input[], size_t input_size)
+template <class T, size_t N>
+bool Automaton<T,N>::Accept(Input input[], size_t input_size)
 {
     // initialize power states
     size_t new_size = input_size + 1;
@@ -112,7 +119,7 @@ bool Automaton<T>::Accept(Input input[], size_t input_size)
 
     for (size_t i = 0; i < new_size; i++) {
         power_states[i].states.clear();
-        power_states[i].inputs.clear();
+        power_states[i].num_inputs = 0;
         power_states[i].transition.clear();
     }
 
@@ -125,7 +132,7 @@ bool Automaton<T>::Accept(Input input[], size_t input_size)
         for (size_t s = 0; s < states.size(); s++) {
             bool valid = false;
 
-            for (size_t v = 0; v < alphabet.size(); v++) {
+            for (size_t v = 0; v < alphabet_size; v++) {
                 T  value = alphabet[v];
                 if (input[i].decided && value != input[i].value)
                     continue;
@@ -152,9 +159,9 @@ bool Automaton<T>::Accept(Input input[], size_t input_size)
             }
         }
 
-        if (power_state.inputs.size() == 0)
+        if (power_state.num_inputs == 0)
             return false;
-        if (power_state.inputs.size() == 1) {
+        if (power_state.num_inputs == 1) {
             input[i].value   = power_state.inputs[0];
             input[i].decided = true;
         }
@@ -163,15 +170,15 @@ bool Automaton<T>::Accept(Input input[], size_t input_size)
     return true;
 }
 
-template <class T>
-bool Automaton<T>::RejectState(size_t i, State *state, Input input[], size_t input_size)
+template <class T, size_t N>
+bool Automaton<T,N>::RejectState(size_t i, State *state, Input input[], size_t input_size)
 {
     if (i == 0)
         return true;
     i--;
 
     PowerState &power_state = power_states[i];
-    power_state.inputs.clear();
+    power_state.num_inputs = 0;
     vector<Transition> &transition = power_state.transition;
     for (size_t t = 0; t < transition.size(); t++) {
         if (transition[t].to == state) {
@@ -182,9 +189,9 @@ bool Automaton<T>::RejectState(size_t i, State *state, Input input[], size_t inp
         }
     }
 
-    if (power_state.inputs.size() == 0)
+    if (power_state.num_inputs == 0)
         return false;
-    if (power_state.inputs.size() == 1) {
+    if (power_state.num_inputs == 1) {
         input[i].value   = power_state.inputs[0];
         input[i].decided = true;
     }
@@ -206,31 +213,36 @@ bool Automaton<T>::RejectState(size_t i, State *state, Input input[], size_t inp
     return true;
 }
 
-template <class T>
-typename Automaton<T>::State *Automaton<T>::State::Transit(T value)
+template <class T, size_t N>
+Automaton<T,N>::State::State()
 {
-    typename map<T, State *>::iterator it = transition.find(value);
-    if (it == transition.end())
-        return NULL;
-    else
-        return it->second;
+    for (size_t i = 0; i < N; i++)
+        transition[i] = NULL;
 }
 
-template <class T>
-void Automaton<T>::PowerState::AddState(State *state) 
+template <class T, size_t N>
+typename Automaton<T,N>::State *Automaton<T,N>::State::Transit(T value)
+{
+    return transition[value];
+}
+
+template <class T, size_t N>
+void Automaton<T,N>::PowerState::AddState(State *state) 
 {
     if (find(states.begin(), states.end(), state) == states.end())
         states.push_back(state);
 }
 
-template <class T>
-void Automaton<T>::PowerState::AddInput(T value) {
-    if (find(inputs.begin(), inputs.end(), value) == inputs.end())
-        inputs.push_back(value);
+template <class T, size_t N>
+void Automaton<T,N>::PowerState::AddInput(T value) {
+    for (size_t i = 0; i < num_inputs; i++)
+        if (inputs[i] == value)
+            return;
+    inputs[num_inputs++] = value;
 }
 
-template <class T>
-void Automaton<T>::PowerState::AddTransition(State *from, State *to, T value)
+template <class T, size_t N>
+void Automaton<T,N>::PowerState::AddTransition(State *from, State *to, T value)
 {
     transition.push_back(Transition(from, to, value));
 }
