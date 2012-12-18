@@ -87,8 +87,6 @@ class Automaton
             void AddTransition(State *from, State *to, T value);
         };
 
-        size_t              alphabet_size;
-        T                   alphabet[N];
         State             * start;
         State             * accept;
         vector<State *>     all_states;
@@ -102,19 +100,10 @@ Automaton<T,N>::Automaton(vector<Run> &run)
 {
     start = accept = new State(0);
     all_states.push_back(start);
-    alphabet_size = 0;
 
     for (size_t i = 0; i < run.size(); i++) {
-        // build alphabet
-        T  value = run[i].value;
-        size_t j;
-        for (j = 0; j < alphabet_size; j++)
-            if (alphabet[j] == value)
-                break;
-        if (j == alphabet_size)
-            alphabet[alphabet_size++] = value;
-
         // build finite state machine
+        T  value = run[i].value;
         for (size_t n = 0; n < run[i].count; n++) {
             State *new_state = new State(all_states.size());
             all_states.push_back(new_state);
@@ -152,14 +141,13 @@ bool Automaton<T,N>::Accept(Input input[], size_t input_size)
 
     // construct power states and transitions based on input
     for (size_t i = 0; i < input_size; i++) {
-        Set member_inputs;
         PowerState &power_state = power_states[i];
         State **states = power_state.states;
         for (size_t s = 0; s < power_state.num_states; s++) {
             bool valid = false;
 
-            for (size_t v = 0; v < alphabet_size; v++) {
-                T  value = alphabet[v];
+            for (size_t v = 0; v < N; v++) {
+                T  value = (T)v;
                 if (input[i].decided && value != input[i].value)
                     continue;
 
@@ -173,7 +161,7 @@ bool Automaton<T,N>::Accept(Input input[], size_t input_size)
                     continue;
 
                 power_state.AddTransition(states[s], next_state, value);
-                power_state.AddInput(value);
+                power_state.member_inputs.Add(value);
                 power_states[i + 1].AddState(next_state);
                 valid = true;
             }
@@ -183,6 +171,14 @@ bool Automaton<T,N>::Accept(Input input[], size_t input_size)
                 if (!valid)
                     return false;
             }
+        }
+
+        // build inputs from member set
+        power_state.num_inputs = 0;
+        for (size_t v = 0; v < N; v++) {
+            T  value = (T)v;
+            if (power_state.member_inputs.Has(value))
+                power_state.inputs[power_state.num_inputs++] = value;
         }
 
         if (power_state.num_inputs == 0)
