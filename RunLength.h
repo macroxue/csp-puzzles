@@ -7,6 +7,7 @@
 //
 // RunLength: 
 //
+template <size_t M>
 class RunLength : public Constraint<bool>
 {
     public:
@@ -16,13 +17,15 @@ class RunLength : public Constraint<bool>
 
     private:
         vector<int> & length;
-        Automaton<bool,2>  automaton;
+        Automaton<bool,2,M>  automaton;
+
 };
 
-RunLength::RunLength(vector<int> & length)
+template <size_t M>
+RunLength<M>::RunLength(vector<int> & length)
     : length(length)
 {
-    typedef Automaton<bool,2>::Run   Run;
+    typedef typename Automaton<bool,2,M>::Run   Run;
     vector<Run> run;
 
     for (size_t i = 0; i < length.size(); i++) {
@@ -31,22 +34,22 @@ RunLength::RunLength(vector<int> & length)
     }
     run.push_back(Run(false, 0, Run::AT_LEAST));
 
-    new (&automaton) Automaton<bool,2>(run);
+    new (&automaton) Automaton<bool,2,M>(run);
 }
 
-inline
-bool RunLength::OnDecided(Variable<bool> *decided)
+template <size_t M>
+bool RunLength<M>::OnDecided(Variable<bool> *decided)
 {
     return Enforce();
 }
 
-inline
-bool RunLength::Enforce()
+template <size_t M>
+bool RunLength<M>::Enforce()
 {
     vector<Variable<bool> *>  &variables = Constraint<bool>::variables;
     size_t num_variables = variables.size();
 
-    typedef Automaton<bool,2>::Input Input;
+    typedef typename Automaton<bool,2,M>::Input Input;
     Input input[num_variables];
 
     for (size_t i = 0; i < num_variables; i++) {

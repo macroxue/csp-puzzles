@@ -9,7 +9,7 @@ using namespace std;
 
 #include "Set.h"
 
-template <class T, size_t N>
+template <class T, size_t N, size_t M>
 class Automaton
 {
     public:
@@ -39,8 +39,6 @@ class Automaton
         bool Accept(Input input[], size_t input_size);
 
     private:
-
-        static const size_t M = 128;
 
         struct State {
             size_t           id;
@@ -84,8 +82,8 @@ class Automaton
         bool RejectState(size_t i, State *state, Input input[], size_t input_size);
 };
 
-template <class T, size_t N>
-Automaton<T,N>::Automaton(vector<Run> &run)
+template <class T, size_t N, size_t M>
+Automaton<T,N,M>::Automaton(vector<Run> &run)
 {
     start = accept = new State(0);
     all_states.push_back(start);
@@ -110,8 +108,8 @@ Automaton<T,N>::Automaton(vector<Run> &run)
     assert(all_states.size() <= M);
 }
 
-template <class T, size_t N>
-bool Automaton<T,N>::Accept(Input input[], size_t input_size)
+template <class T, size_t N, size_t M>
+bool Automaton<T,N,M>::Accept(Input input[], size_t input_size)
 {
     // initialize power states
     size_t new_size = input_size + 1;
@@ -181,8 +179,8 @@ bool Automaton<T,N>::Accept(Input input[], size_t input_size)
     return true;
 }
 
-template <class T, size_t N>
-bool Automaton<T,N>::RejectState(size_t i, State *state, Input input[], size_t input_size)
+template <class T, size_t N, size_t M>
+bool Automaton<T,N,M>::RejectState(size_t i, State *state, Input input[], size_t input_size)
 {
     if (i == 0)
         return true;
@@ -233,22 +231,22 @@ bool Automaton<T,N>::RejectState(size_t i, State *state, Input input[], size_t i
     return true;
 }
 
-template <class T, size_t N>
-Automaton<T,N>::State::State(size_t id)
+template <class T, size_t N, size_t M>
+Automaton<T,N,M>::State::State(size_t id)
     : id(id)
 {
     for (size_t i = 0; i < N; i++)
         transition[i] = NULL;
 }
 
-template <class T, size_t N>
-typename Automaton<T,N>::State *Automaton<T,N>::State::Transit(T value)
+template <class T, size_t N, size_t M>
+typename Automaton<T,N,M>::State *Automaton<T,N,M>::State::Transit(T value)
 {
     return transition[value];
 }
 
-template <class T, size_t N>
-void Automaton<T,N>::PowerState::AddState(State *state) 
+template <class T, size_t N, size_t M>
+void Automaton<T,N,M>::PowerState::AddState(State *state) 
 {
     if (!member_states.Has(state->id)) {
         member_states.Add(state->id);
@@ -256,30 +254,31 @@ void Automaton<T,N>::PowerState::AddState(State *state)
     }
 }
 
-template <class T, size_t N>
-void Automaton<T,N>::PowerState::RemoveState(State *state, size_t s)
+template <class T, size_t N, size_t M>
+void Automaton<T,N,M>::PowerState::RemoveState(State *state, size_t s)
 {
     member_states.Remove(state->id);
     states[s] = states[--num_states];
 }
 
-template <class T, size_t N>
-void Automaton<T,N>::PowerState::AddInput(T value) {
+template <class T, size_t N, size_t M>
+void Automaton<T,N,M>::PowerState::AddInput(T value)
+{
     if (!member_inputs.Has(value)) {
         member_inputs.Add(value);
         inputs[num_inputs++] = value;
     }
 }
 
-template <class T, size_t N>
-void Automaton<T,N>::PowerState::RemoveInput(T value, size_t j)
+template <class T, size_t N, size_t M>
+void Automaton<T,N,M>::PowerState::RemoveInput(T value, size_t j)
 {
     member_inputs.Remove(value);
     inputs[j] = inputs[--num_inputs];
 }
 
-template <class T, size_t N>
-void Automaton<T,N>::PowerState::AddTransition(State *from, State *to, T value)
+template <class T, size_t N, size_t M>
+void Automaton<T,N,M>::PowerState::AddTransition(State *from, State *to, T value)
 {
     transition.push_back(Transition(from, to, value));
 }

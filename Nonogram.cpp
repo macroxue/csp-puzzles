@@ -14,6 +14,11 @@ class Nonogram : public Problem<bool>
         void ShowSolution();
 
     private:
+        template <size_t M>
+            void CreateRowConstraint(int y);
+        template <size_t M>
+            void CreateColumnConstraint(int x);
+
         int  columns, rows;
         vector< vector<Variable<bool> * > >  grid;
         vector< vector<int> >  column_runs;
@@ -68,18 +73,18 @@ Nonogram::Nonogram(Option option, bool rotate)
 
     // Create row constraints
     for (int y = 0; y < rows; y++) {
-        RunLength  *r = new RunLength(row_runs[y]);
-        for (int x = 0; x < columns; x++) 
-            r->AddVariable(grid[x][y]);
-        AddConstraint(r);
+        if (columns < 63)
+            CreateRowConstraint<63>(y);
+        else
+            CreateRowConstraint<127>(y);
     }
 
     // Create column constraints
     for (int x = 0; x < columns; x++) {
-        RunLength *r = new RunLength(column_runs[x]);
-        for (int y = 0; y < rows; y++)
-            r->AddVariable(grid[x][y]);
-        AddConstraint(r);
+        if (rows < 63)
+            CreateColumnConstraint<63>(x);
+        else
+            CreateColumnConstraint<127>(x);
     }
 }
 
@@ -108,6 +113,24 @@ void Nonogram::ShowSolution()
         }
         printf("\n");
     }
+}
+
+template <size_t M>
+void Nonogram::CreateRowConstraint(int y)
+{
+    RunLength<M> *r = new RunLength<M>(row_runs[y]);
+    for (int x = 0; x < columns; x++) 
+        r->AddVariable(grid[x][y]);
+    AddConstraint(r);
+}
+
+template <size_t M>
+void Nonogram::CreateColumnConstraint(int x)
+{
+    RunLength<M> *r = new RunLength<M>(column_runs[x]);
+    for (int y = 0; y < rows; y++)
+        r->AddVariable(grid[x][y]);
+    AddConstraint(r);
 }
 
 int main(int argc, char *argv[])
