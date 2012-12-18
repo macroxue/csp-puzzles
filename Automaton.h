@@ -180,14 +180,16 @@ bool Automaton<T,N>::RejectState(size_t i, State *state, Input input[], size_t i
     PowerState &power_state = power_states[i];
     power_state.num_inputs = 0;
     vector<Transition> &transition = power_state.transition;
-    for (size_t t = 0; t < transition.size(); t++) {
+    size_t size = transition.size();
+    for (size_t t = 0; t < size; t++) {
         if (transition[t].to == state) {
-            transition.erase(transition.begin() + t);
+            transition[t] = transition[--size];
             t--;
         } else {
             power_state.AddInput(transition[t].value);
         }
     }
+    transition.erase(transition.begin() + size, transition.end());
 
     if (power_state.num_inputs == 0)
         return false;
@@ -196,19 +198,23 @@ bool Automaton<T,N>::RejectState(size_t i, State *state, Input input[], size_t i
         input[i].decided = true;
     }
 
-    for (size_t s = 0; s < power_state.states.size(); s++) {
+    size = power_state.states.size();
+    for (size_t s = 0; s < size; s++) {
         State *from_state = power_state.states[s];
         bool valid = false;
         for (size_t t = 0; t < transition.size(); t++) {
-            if (transition[t].from == from_state)
+            if (transition[t].from == from_state) {
                 valid = true;
+                break;
+            }
         }
         if (!valid) {
-            power_state.states.erase(power_state.states.begin() + s);
+            power_state.states[s] = power_state.states[--size];
             s--;
             RejectState(i, from_state, input, input_size);
         }
     }
+    power_state.states.erase(power_state.states.begin() + size, power_state.states.end());
 
     return true;
 }
