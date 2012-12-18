@@ -11,6 +11,7 @@ class Set {
         void      Add(size_t bit);
         void      Remove(size_t bit);
         bool      Has(size_t bit) const;
+        uint64_t  Hash() const;
 
         bool      operator ==(Set &set) const;
 
@@ -18,7 +19,6 @@ class Set {
         uint64_t  Mask(size_t bit) const;
 
         uint64_t  bits[(BITS+63)/64];
-
 };
 
 template <size_t BITS>
@@ -50,6 +50,15 @@ template <size_t BITS>
 bool Set<BITS>::Has(size_t bit) const
 {
     return (bits[bit >> 6] & Mask(bit & 63)) != 0;
+}
+
+template <size_t BITS>
+uint64_t Set<BITS>::Hash() const
+{
+    uint64_t sum = 0;
+    for (size_t i = 0; i < sizeof(bits)/8; i++)
+        sum += bits[i];
+    return sum;
 }
 
 template <size_t BITS>
