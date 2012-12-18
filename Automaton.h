@@ -2,11 +2,12 @@
 #define AUTOMATON_H
 
 #include <assert.h>
-#include <stdint.h>
 
 #include <algorithm>
 #include <vector>
 using namespace std;
+
+#include "Set.h"
 
 template <class T, size_t N>
 class Automaton
@@ -39,19 +40,7 @@ class Automaton
 
     private:
 
-        class Set {
-            private:
-                uint64_t  bits[2];
-                uint64_t  Mask(size_t bit)   { return (uint64_t)1 << bit; }
-            public:
-                Set()                        { Clear(); }
-                void      Clear()            { bits[0] = bits[1] = 0; }
-                void      Add(size_t bit)    { bits[bit >> 6] |= Mask(bit & 63); }
-                void      Remove(size_t bit) { bits[bit >> 6] &= ~Mask(bit & 63); }
-                uint64_t  Has(size_t bit)    { return bits[bit >> 6] & Mask(bit & 63); }
-        };
-
-        static const size_t M = sizeof(Set) * 8;
+        static const size_t M = 128;
 
         struct State {
             size_t           id;
@@ -72,10 +61,10 @@ class Automaton
         };
 
         struct PowerState {
-            Set                    member_states;
+            Set<M>                 member_states;
             size_t                 num_states;
             State *                states[M];
-            Set                    member_inputs;
+            Set<M>                 member_inputs;
             size_t                 num_inputs;
             T                      inputs[N];
             vector<Transition>     transition;
@@ -200,7 +189,7 @@ bool Automaton<T,N>::RejectState(size_t i, State *state, Input input[], size_t i
     i--;
 
     // compute the sets of from-states and inputs, after removal of to-states
-    Set member_states, member_inputs;
+    Set<M> member_states, member_inputs;
     PowerState &power_state = power_states[i];
     vector<Transition> &transition = power_state.transition;
     size_t size = transition.size();

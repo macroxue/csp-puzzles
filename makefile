@@ -36,7 +36,7 @@ Strimko: Strimko.cpp $(FRAMEWORK)
 Crossword: Crossword.cpp $(FRAMEWORK)
 	g++ $(OPTS) -o $@ $(filter %.cpp,$^) 
 
-Nonogram: Nonogram.cpp $(FRAMEWORK) RunLength.h Automaton.h
+Nonogram: Nonogram.cpp $(FRAMEWORK) RunLength.h Automaton.h Set.h
 	g++ $(OPTS) -o $@ $(filter %.cpp,$^) 
 
 MasterMind: MasterMind.cpp $(FRAMEWORK)
