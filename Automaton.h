@@ -25,18 +25,18 @@ class Automaton
                 : value(value), count(count), mod(mod) {}
         };
 
-        struct Input {
-            T    value;
-            bool decided;
-
-            Input() {}
-            Input(T value, bool decided)
-                : value(value), decided(decided) {}
-        };
+        template <class I>
+            struct Input {
+                bool IsDecided(size_t i) const { return static_cast<const I *>(this)->IsDecided(i); }
+                void SetDecided(size_t i)      { static_cast<I *>(this)->SetDecided(i); }
+                T    GetValue(size_t i) const  { return static_cast<const I *>(this)->GetValue(i); }
+                void SetValue(size_t i, T v)   { static_cast<I *>(this)->SetValue(i, v); }
+            };
 
         Automaton() {}
         Automaton(vector<Run> &run);
-        bool Accept(Input input[], size_t input_size);
+        template <class I>
+            bool Accept(Input<I> &input, size_t input_size);
 
     private:
 
@@ -79,7 +79,8 @@ class Automaton
         vector<State *>     all_states;
         vector<PowerState>  power_states;
 
-        bool RejectState(size_t i, State *state, Input input[], size_t input_size);
+        template <class I>
+            bool RejectState(size_t i, State *state, Input<I> &input, size_t input_size);
 };
 
 template <class T, size_t N, size_t M>
@@ -108,8 +109,8 @@ Automaton<T,N,M>::Automaton(vector<Run> &run)
     assert(all_states.size() <= M);
 }
 
-template <class T, size_t N, size_t M>
-bool Automaton<T,N,M>::Accept(Input input[], size_t input_size)
+template <class T, size_t N, size_t M> template <class I>
+bool Automaton<T,N,M>::Accept(Input<I> &input, size_t input_size)
 {
     // initialize power states
     size_t new_size = input_size + 1;
@@ -135,7 +136,7 @@ bool Automaton<T,N,M>::Accept(Input input[], size_t input_size)
 
             for (size_t v = 0; v < N; v++) {
                 T  value = (T)v;
-                if (input[i].decided && value != input[i].value)
+                if (input.IsDecided(i) && value != input.GetValue(i))
                     continue;
 
                 State *next_state = states[s]->Transit(value);
@@ -171,16 +172,16 @@ bool Automaton<T,N,M>::Accept(Input input[], size_t input_size)
         if (power_state.num_inputs == 0)
             return false;
         if (power_state.num_inputs == 1) {
-            input[i].value   = power_state.inputs[0];
-            input[i].decided = true;
+            input.SetValue(i, power_state.inputs[0]);
+            input.SetDecided(i);
         }
     }
 
     return true;
 }
 
-template <class T, size_t N, size_t M>
-bool Automaton<T,N,M>::RejectState(size_t i, State *state, Input input[], size_t input_size)
+template <class T, size_t N, size_t M> template <class I>
+bool Automaton<T,N,M>::RejectState(size_t i, State *state, Input<I> &input, size_t input_size)
 {
     if (i == 0)
         return true;
@@ -214,8 +215,8 @@ bool Automaton<T,N,M>::RejectState(size_t i, State *state, Input input[], size_t
     if (power_state.num_inputs == 0)
         return false;
     if (power_state.num_inputs == 1) {
-        input[i].value   = power_state.inputs[0];
-        input[i].decided = true;
+        input.SetValue(i, power_state.inputs[0]);
+        input.SetDecided(i);
     }
 
     // remove unreachable from-states

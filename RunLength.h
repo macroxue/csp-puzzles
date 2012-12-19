@@ -19,11 +19,19 @@ class RunLength : public Constraint<bool>
         vector<int> & length;
         Automaton<bool,2,M>  automaton;
 
-        struct Line {
-            Set<M> value;
-            Set<M> decided;
+        class Line : public Automaton<bool,2,M>::template Input<Line> {
+            public:
+                bool operator ==(Line &line);
+                uint64_t Hash() const;
 
-            bool operator ==(Line &line);
+                bool IsDecided(size_t i) const  { return decided.Has(i); }
+                void SetDecided(size_t i)       { decided.Add(i); }
+                bool GetValue(size_t i) const   { return value.Has(i); }
+                void SetValue(size_t i, bool v) { if (v) value.Add(i); else value.Remove(i); }
+
+            private:
+                Set<M> value;
+                Set<M> decided;
         };
 
         class Cache {
@@ -32,8 +40,6 @@ class RunLength : public Constraint<bool>
                 void Update(Line &in, Line &out);
 
             private:
-                uint64_t Hash(Line &in);
-
                 static const size_t BUCKETS = 1024;
                 Line input[BUCKETS];
                 Line output[BUCKETS];
@@ -77,8 +83,8 @@ bool RunLength<M>::Enforce()
         return false;
 
     for (size_t i = 0; i < num_variables; i++) {
-        if (variables[i]->GetDomainSize() > 1 && out.decided.Has(i)) {
-            variables[i]->Decide(out.value.Has(i));
+        if (variables[i]->GetDomainSize() > 1 && out.IsDecided(i)) {
+            variables[i]->Decide(out.GetValue(i));
 
             vector<Constraint<bool>*> &constraints = variables[i]->GetConstraints();
             for (size_t j = 0; j < constraints.size(); j++) {
@@ -97,44 +103,28 @@ bool RunLength<M>::Accept(Line &out)
     vector<Variable<bool> *>  &variables = Constraint<bool>::variables;
     size_t num_inputs = variables.size();
 
-    typedef typename Automaton<bool,2,M>::Input Input;
-    Input input[num_inputs];
     Line in;
-
     for (size_t i = 0; i < num_inputs; i++) {
         if (variables[i]->GetDomainSize() == 1) {
-            input[i].value = variables[i]->GetValue(0);
-            input[i].decided = true;
-            if (input[i].value)
-                in.value.Add(i);
-            else
-                in.value.Remove(i);
-            in.decided.Add(i);
+            in.SetValue(i, variables[i]->GetValue(0));
+            in.SetDecided(i);
         } else {
-            input[i].decided = false;
-            in.value.Add(i);
+            in.SetValue(i, true);
         }
     }
 
     if (cache.Lookup(in, out))
-        return out.decided.Has(M);
+        return out.IsDecided(M); // accept flag is the last bit
 
-    if (!automaton.Accept(input, num_inputs)) {
+    out = in;
+    if (automaton.Accept(out, num_inputs)) {
+        out.SetDecided(M); // accept flag is the last bit
+        cache.Update(in, out);
+        return true;
+    } else {
         cache.Update(in, out);
         return false;
     }
-
-    out.decided.Add(M);
-    for (size_t i = 0; i < num_inputs; i++) {
-        if (input[i].decided) {
-            out.decided.Add(i);
-            if (input[i].value)
-                out.value.Add(i);
-        }
-    }
-    cache.Update(in, out);
-
-    return true;
 }
 
 template <size_t M>
@@ -142,22 +132,22 @@ bool RunLength<M>::Line::operator ==(Line &line)
 {
     return value == line.value && decided == line.decided;
 }
-
+                
 template <size_t M>
-uint64_t RunLength<M>::Cache::Hash(Line &in)
-{
-    uint64_t h1 = in.value.Hash();
-    uint64_t h2 = in.decided.Hash();
+uint64_t RunLength<M>::Line::Hash() const
+{ 
+    uint64_t h1 = value.Hash();
+    uint64_t h2 = decided.Hash();
     uint64_t sum = 0;
     for (size_t i = 0; i < 64; i += 10)
         sum += (h1 >> i) + (h2 >> i);
-    return sum % BUCKETS;
+    return sum;
 }
 
 template <size_t M>
 bool RunLength<M>::Cache::Lookup(Line &in, Line &out)
 {
-    uint64_t index = Hash(in);
+    uint64_t index = in.Hash() % BUCKETS;
     if (in == input[index]) {
         out = output[index];
         return true;
@@ -168,7 +158,7 @@ bool RunLength<M>::Cache::Lookup(Line &in, Line &out)
 template <size_t M>
 void RunLength<M>::Cache::Update(Line &in, Line &out)
 {
-    uint64_t index = Hash(in);
+    uint64_t index = in.Hash() % BUCKETS;
     input[index]  = in;
     output[index] = out;
 }
