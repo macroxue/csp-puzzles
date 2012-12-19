@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
@@ -29,7 +30,7 @@ Nonogram::Nonogram(Option option, bool rotate)
     : Problem<bool>(option)
 {
     // Read input
-    char line[80];
+    char line[128];
     fgets(line, sizeof(line), stdin);
     if (!rotate)
         sscanf(line, "%d %d", &rows, &columns);
@@ -41,14 +42,14 @@ Nonogram::Nonogram(Option option, bool rotate)
     for (int i = 0; i < rows + columns; i++) {
         do fgets(line, sizeof(line), stdin);
         while (line[0] == '#');
-        int n[32];
-        int count = sscanf(line,
-                "%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d"
-                "%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d", 
-                n+0, n+1, n+2, n+3, n+4, n+5, n+6, n+7, 
-                n+8, n+9, n+10, n+11, n+12, n+13, n+14, n+15,
-                n+16, n+17, n+18, n+19, n+20, n+21, n+22, n+23,
-                n+24, n+25, n+26, n+27, n+28, n+29, n+30, n+31);
+        int n[64], count = 0;
+        char *ptr = line;
+        while (*ptr) {
+            while (*ptr && !isdigit(*ptr)) ptr++;
+            if (*ptr)
+                n[count++] = atoi(ptr);
+            while (*ptr && !isspace(*ptr)) ptr++;
+        }
 
         for (int j = 0; j < count; j++) {
             if (!rotate)
