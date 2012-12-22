@@ -21,7 +21,7 @@ class RunLength : public Constraint<bool>
 
         class Line : public Automaton<bool,2,M>::template Input<Line> {
             public:
-                bool operator ==(Line &line);
+                bool operator ==(const Line &line) const;
                 void Show() const;
 
                 bool IsDecided(size_t i) const  { return decided.Has(i); }
@@ -36,10 +36,10 @@ class RunLength : public Constraint<bool>
 
         class Cache {
             public:
-                bool Lookup(Line &in, Line &out);
-                void Update(Line &in, Line &out);
+                bool Lookup(const Line &in, Line &out) const;
+                void Update(const Line &in, const Line &out);
 
-                uint64_t Hash(Line &in) const;
+                uint64_t Hash(const Line &in) const;
                 size_t   line_length;
             private:
                 static const size_t BUCKETS = 1024;
@@ -133,7 +133,7 @@ bool RunLength<M>::Accept(Line &out)
 }
 
 template <size_t M>
-bool RunLength<M>::Line::operator ==(Line &line)
+bool RunLength<M>::Line::operator ==(const Line &line) const
 {
     return value == line.value && decided == line.decided;
 }
@@ -146,7 +146,7 @@ void RunLength<M>::Line::Show() const
 }
 
 template <size_t M>
-uint64_t RunLength<M>::Cache::Hash(Line &in) const
+uint64_t RunLength<M>::Cache::Hash(const Line &in) const
 { 
     extern uint64_t hash_rand[4][128];
 
@@ -157,7 +157,7 @@ uint64_t RunLength<M>::Cache::Hash(Line &in) const
 }
 
 template <size_t M>
-bool RunLength<M>::Cache::Lookup(Line &in, Line &out)
+bool RunLength<M>::Cache::Lookup(const Line &in, Line &out) const
 {
     uint64_t index = Hash(in) % BUCKETS;
     if (in == input[index]) {
@@ -168,7 +168,7 @@ bool RunLength<M>::Cache::Lookup(Line &in, Line &out)
 }
 
 template <size_t M>
-void RunLength<M>::Cache::Update(Line &in, Line &out)
+void RunLength<M>::Cache::Update(const Line &in, const Line &out)
 {
     uint64_t index = Hash(in) % BUCKETS;
     input[index]  = in;

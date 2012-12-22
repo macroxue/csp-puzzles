@@ -12,7 +12,7 @@ class Set {
         void      Remove(size_t bit);
         bool      Has(size_t bit) const;
 
-        bool      operator ==(Set &set) const;
+        bool      operator ==(const Set &set) const;
 
     private:
         uint64_t  Mask(size_t bit) const;
@@ -52,7 +52,7 @@ bool Set<BITS>::Has(size_t bit) const
 }
 
 template <size_t BITS>
-bool Set<BITS>::operator ==(Set &set) const
+bool Set<BITS>::operator ==(const Set &set) const
 {
     for (size_t i = 0; i < sizeof(bits)/8; i++)
         if (bits[i] != set.bits[i])
