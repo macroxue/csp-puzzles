@@ -22,7 +22,6 @@ class RunLength : public Constraint<bool>
         class Line : public Automaton<bool,2,M>::template Input<Line> {
             public:
                 bool operator ==(Line &line);
-                uint64_t Hash() const;
                 void Show() const;
 
                 bool IsDecided(size_t i) const  { return decided.Has(i); }
@@ -40,6 +39,8 @@ class RunLength : public Constraint<bool>
                 bool Lookup(Line &in, Line &out);
                 void Update(Line &in, Line &out);
 
+                uint64_t Hash(Line &in) const;
+                size_t   line_length;
             private:
                 static const size_t BUCKETS = 1024;
                 Line input[BUCKETS];
@@ -114,6 +115,7 @@ bool RunLength<M>::Accept(Line &out)
         }
     }
 
+    cache.line_length = num_inputs;
     if (cache.Lookup(in, out))
         return out.IsDecided(M); // accept flag is the last bit
 
@@ -137,17 +139,6 @@ bool RunLength<M>::Line::operator ==(Line &line)
 }
                 
 template <size_t M>
-uint64_t RunLength<M>::Line::Hash() const
-{ 
-    extern uint64_t hash_rand[4][128];
-
-    uint64_t sum = 0;
-    for (size_t i = 0; i < M; i++)
-        sum += hash_rand[value.Has(i) + decided.Has(i)*2][i];
-    return sum;
-}
-
-template <size_t M>
 void RunLength<M>::Line::Show() const
 {
     for (size_t i = 0; i < M; i++)
@@ -155,9 +146,20 @@ void RunLength<M>::Line::Show() const
 }
 
 template <size_t M>
+uint64_t RunLength<M>::Cache::Hash(Line &in) const
+{ 
+    extern uint64_t hash_rand[4][128];
+
+    uint64_t sum = 0;
+    for (size_t i = 0; i < line_length; i++)
+        sum += hash_rand[in.GetValue(i) + in.IsDecided(i)*2][i];
+    return sum;
+}
+
+template <size_t M>
 bool RunLength<M>::Cache::Lookup(Line &in, Line &out)
 {
-    uint64_t index = in.Hash() % BUCKETS;
+    uint64_t index = Hash(in) % BUCKETS;
     if (in == input[index]) {
         out = output[index];
         return true;
@@ -168,7 +170,7 @@ bool RunLength<M>::Cache::Lookup(Line &in, Line &out)
 template <size_t M>
 void RunLength<M>::Cache::Update(Line &in, Line &out)
 {
-    uint64_t index = in.Hash() % BUCKETS;
+    uint64_t index = Hash(in) % BUCKETS;
     input[index]  = in;
     output[index] = out;
 }
