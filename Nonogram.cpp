@@ -7,6 +7,8 @@ using namespace std;
 #include "RunLength.h"
 #include "Problem.h"
 
+uint64_t hash_rand[4][128];
+
 class Nonogram : public Problem<bool>
 {
     public:
@@ -87,6 +89,12 @@ Nonogram::Nonogram(Option option, bool rotate)
         else
             CreateColumnConstraint<127>(x);
     }
+
+    // Initialize hash random numbers
+    srand(1);
+    for (int v = 0; v < 4; v++)
+        for (int i = 0; i < 128; i++) 
+            hash_rand[v][i] = (long(rand()) << 32) + rand();
 }
 
 void Nonogram::ShowState(Variable<bool> *current)
