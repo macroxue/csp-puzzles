@@ -30,12 +30,13 @@ class RunLength : public Constraint<bool>
                 void SetValue(size_t i, bool v) { if (v) value.Add(i); else value.Remove(i); }
 
             private:
-                Set<M> value;
-                Set<M> decided;
+                Set<M+1> value;
+                Set<M+1> decided;
         };
 
         class Cache {
             public:
+                Cache();
                 bool Lookup(const Line &in, Line &out) const;
                 void Update(const Line &in, const Line &out);
 
@@ -110,8 +111,6 @@ bool RunLength<M>::Accept(Line &out)
         if (variables[i]->GetDomainSize() == 1) {
             in.SetValue(i, variables[i]->GetValue(0));
             in.SetDecided(i);
-        } else {
-            in.SetValue(i, true);
         }
     }
 
@@ -143,6 +142,14 @@ void RunLength<M>::Line::Show() const
 {
     for (size_t i = 0; i < M; i++)
         putchar(IsDecided(i) ? GetValue(i) + '0' : '?');
+}
+
+template <size_t M>
+RunLength<M>::Cache::Cache()
+{
+    // Initialze cache to have invalid inputs
+    for (size_t i = 0; i < BUCKETS; i++)
+        input[i].SetValue(M, true);
 }
 
 template <size_t M>
