@@ -17,9 +17,9 @@ class Nonogram : public Problem<bool>
         void ShowSolution();
 
     private:
-        template <size_t M>
+        template <size_t M, size_t B>
             void CreateRowConstraint(int y);
-        template <size_t M>
+        template <size_t M, size_t B>
             void CreateColumnConstraint(int x);
 
         int  columns, rows;
@@ -76,18 +76,31 @@ Nonogram::Nonogram(Option option, bool rotate)
 
     // Create row constraints
     for (int y = 0; y < rows; y++) {
-        if (columns < 63)
-            CreateRowConstraint<63>(y);
-        else
-            CreateRowConstraint<127>(y);
+        if (columns < 63) {
+            if (columns < 31)
+                CreateRowConstraint<63,512>(y);
+            else
+                CreateRowConstraint<63,1024>(y);
+        } else {
+            if (columns < 95)
+                CreateRowConstraint<127,2048>(y);
+            else
+                CreateRowConstraint<127,4096>(y);
+        }
     }
 
     // Create column constraints
     for (int x = 0; x < columns; x++) {
         if (rows < 63)
-            CreateColumnConstraint<63>(x);
+            if (rows < 31)
+                CreateColumnConstraint<63,512>(x);
+            else
+                CreateColumnConstraint<63,1024>(x);
         else
-            CreateColumnConstraint<127>(x);
+            if (rows < 95)
+                CreateColumnConstraint<127,2048>(x);
+            else
+                CreateColumnConstraint<127,4096>(x);
     }
 
     // Initialize hash random numbers
@@ -124,19 +137,19 @@ void Nonogram::ShowSolution()
     }
 }
 
-template <size_t M>
+template <size_t M, size_t B>
 void Nonogram::CreateRowConstraint(int y)
 {
-    RunLength<M> *r = new RunLength<M>(row_runs[y]);
+    RunLength<M,B> *r = new RunLength<M,B>(row_runs[y]);
     for (int x = 0; x < columns; x++) 
         r->AddVariable(grid[x][y]);
     AddConstraint(r);
 }
 
-template <size_t M>
+template <size_t M, size_t B>
 void Nonogram::CreateColumnConstraint(int x)
 {
-    RunLength<M> *r = new RunLength<M>(column_runs[x]);
+    RunLength<M,B> *r = new RunLength<M,B>(column_runs[x]);
     for (int y = 0; y < rows; y++)
         r->AddVariable(grid[x][y]);
     AddConstraint(r);

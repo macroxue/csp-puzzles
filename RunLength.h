@@ -7,7 +7,7 @@
 //
 // RunLength: 
 //
-template <size_t M>
+template <size_t M, size_t B>
 class RunLength : public Constraint<bool>
 {
     public:
@@ -43,9 +43,8 @@ class RunLength : public Constraint<bool>
                 uint64_t Hash(const Line &in) const;
                 size_t   line_length;
             private:
-                static const size_t BUCKETS = 1024;
-                Line input[BUCKETS];
-                Line output[BUCKETS];
+                Line input[B];
+                Line output[B];
         };
 
         Cache cache;
@@ -53,8 +52,8 @@ class RunLength : public Constraint<bool>
         bool Accept(Line &out);
 };
 
-template <size_t M>
-RunLength<M>::RunLength(vector<int> & length)
+template <size_t M, size_t B>
+RunLength<M,B>::RunLength(vector<int> & length)
     : length(length)
 {
     typedef typename Automaton<bool,2,M>::Run   Run;
@@ -69,14 +68,14 @@ RunLength<M>::RunLength(vector<int> & length)
     new (&automaton) Automaton<bool,2,M>(run);
 }
 
-template <size_t M>
-bool RunLength<M>::OnDecided(Variable<bool> *decided)
+template <size_t M, size_t B>
+bool RunLength<M,B>::OnDecided(Variable<bool> *decided)
 {
     return Enforce();
 }
 
-template <size_t M>
-bool RunLength<M>::Enforce()
+template <size_t M, size_t B>
+bool RunLength<M,B>::Enforce()
 {
     vector<Variable<bool> *>  &variables = Constraint<bool>::variables;
     size_t num_variables = variables.size();
@@ -100,8 +99,8 @@ bool RunLength<M>::Enforce()
     return true;
 }
 
-template <size_t M>
-bool RunLength<M>::Accept(Line &out)
+template <size_t M, size_t B>
+bool RunLength<M,B>::Accept(Line &out)
 {
     vector<Variable<bool> *>  &variables = Constraint<bool>::variables;
     size_t num_inputs = variables.size();
@@ -131,29 +130,29 @@ bool RunLength<M>::Accept(Line &out)
     }
 }
 
-template <size_t M>
-bool RunLength<M>::Line::operator ==(const Line &line) const
+template <size_t M, size_t B>
+bool RunLength<M,B>::Line::operator ==(const Line &line) const
 {
     return value == line.value && decided == line.decided;
 }
                 
-template <size_t M>
-void RunLength<M>::Line::Show() const
+template <size_t M, size_t B>
+void RunLength<M,B>::Line::Show() const
 {
     for (size_t i = 0; i < M; i++)
         putchar(IsDecided(i) ? GetValue(i) + '0' : '?');
 }
 
-template <size_t M>
-RunLength<M>::Cache::Cache()
+template <size_t M, size_t B>
+RunLength<M,B>::Cache::Cache()
 {
     // Initialze cache to have invalid inputs
-    for (size_t i = 0; i < BUCKETS; i++)
+    for (size_t i = 0; i < B; i++)
         input[i].SetValue(M, true);
 }
 
-template <size_t M>
-uint64_t RunLength<M>::Cache::Hash(const Line &in) const
+template <size_t M, size_t B>
+uint64_t RunLength<M,B>::Cache::Hash(const Line &in) const
 { 
     extern uint64_t hash_rand[4][128];
 
@@ -163,10 +162,10 @@ uint64_t RunLength<M>::Cache::Hash(const Line &in) const
     return sum;
 }
 
-template <size_t M>
-bool RunLength<M>::Cache::Lookup(const Line &in, Line &out) const
+template <size_t M, size_t B>
+bool RunLength<M,B>::Cache::Lookup(const Line &in, Line &out) const
 {
-    uint64_t index = Hash(in) % BUCKETS;
+    uint64_t index = Hash(in) % B;
     if (in == input[index]) {
         out = output[index];
         return true;
@@ -174,10 +173,10 @@ bool RunLength<M>::Cache::Lookup(const Line &in, Line &out) const
         return false;
 }
 
-template <size_t M>
-void RunLength<M>::Cache::Update(const Line &in, const Line &out)
+template <size_t M, size_t B>
+void RunLength<M,B>::Cache::Update(const Line &in, const Line &out)
 {
-    uint64_t index = Hash(in) % BUCKETS;
+    uint64_t index = Hash(in) % B;
     input[index]  = in;
     output[index] = out;
 }
