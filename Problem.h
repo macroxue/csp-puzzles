@@ -222,6 +222,7 @@ void Problem<T>::Search(size_t v)
     Variable<T> *variable = variables[v];
     DEBUG( variable->ShowDomain() );
 
+    bool deadend = true;
     while (variable->GetDomainSize() > 0) {
         StartCheckpoint();
         T value = variable->GetValue(0);
@@ -231,15 +232,15 @@ void Problem<T>::Search(size_t v)
         bool consistent = variable->PropagateDecision(NULL);
         consistent = EnforceActiveConstraints(consistent);
         if (consistent) {
+            deadend = false;
             Sort(v + 1);
             DEBUG( ShowState(variable) );
             Search(v + 1);
-        } else {
-            variable->failures++;
         }
         RestoreCheckpoint();
         variable->Exclude(value);
     }
+    variable->failures += deadend;
 }
 
 template <class T>
