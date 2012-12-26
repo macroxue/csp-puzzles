@@ -250,20 +250,45 @@ void Problem<T>::Sort(size_t v)
         case Option::SORT_DISABLED:
             break;
         case Option::SORT_DOMAIN_SIZE:
-            for (size_t i = v+1; i < variables.size(); i++) {
-                size_t domain_size = variables[i]->GetDomainSize();
-                if (domain_size == 1) {
-                    swap(variables[v], variables[i]);
-                    v++;
-                } else if (variables[v]->GetDomainSize() > domain_size)
-                    swap(variables[v], variables[i]);
+            {
+                size_t min_domain_size = LONG_MAX, min_index = variables.size();
+                for (size_t i = v; i < variables.size(); i++) {
+                    size_t domain_size = variables[i]->GetDomainSize();
+                    if (domain_size == 1) {
+                        swap(variables[v], variables[i]);
+                        if (min_index == v)
+                            min_index = i;
+                        v++;
+                    } else if (min_domain_size > domain_size ||
+                            (min_domain_size == domain_size &&
+                             variables[min_index]->failures < variables[i]->failures)) {
+                        min_domain_size = domain_size;
+                        min_index = i;
+                    }
+                }
+                if (min_index != variables.size()) 
+                    swap(variables[v], variables[min_index]);
+                break;
             }
-            break;
         case Option::SORT_FAILURES:
-            for (size_t i = v+1; i < variables.size(); i++) 
-                if (variables[v]->failures < variables[i]->failures)
-                    swap(variables[v], variables[i]);
-            break;
+            {
+                size_t max_failures = 0, max_index = variables.size();
+                for (size_t i = v; i < variables.size(); i++) {
+                    size_t domain_size = variables[i]->GetDomainSize();
+                    if (domain_size == 1) {
+                        swap(variables[v], variables[i]);
+                        if (max_index == v)
+                            max_index = i;
+                        v++;
+                    } else if (max_failures < variables[i]->failures) {
+                        max_failures = variables[i]->failures;
+                        max_index = i;
+                    }
+                }
+                if (max_index != variables.size()) 
+                    swap(variables[v], variables[max_index]);
+                break;
+            }
     }
 }
 
