@@ -234,6 +234,8 @@ void Problem<T>::Search(size_t v)
         variable->Decide(value);
         bool consistent = variable->PropagateDecision(NULL);
         consistent = EnforceActiveConstraints(consistent);
+        if (consistent && option.arc_consistency)
+            consistent = EnforceArcConsistency(v+1);
         DEBUG( printf("%ld: Variable %ld = %d, %d\n", v, variable->GetId(), value, consistent) );
         if (consistent) {
             deadend = false;
