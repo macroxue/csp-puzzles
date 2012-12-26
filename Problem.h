@@ -48,6 +48,7 @@ class Problem
     protected:
         size_t                   num_solutions;
         size_t                   search_count;
+        size_t                   deadend_count;
 
         Option                   option;
 
@@ -65,7 +66,7 @@ inline double seconds()
 
 template <class T>
 Problem<T>::Problem(Option option)
-    : num_solutions(0), search_count(0), option(option)
+    : num_solutions(0), search_count(0), deadend_count(0), option(option)
 {
     start = seconds();
 }
@@ -207,11 +208,14 @@ void Problem<T>::Search(size_t v)
     search_count++;
 
     // Skip variables that have been decided.
-    while (v < variables.size() && variables[v]->GetDomainSize() == 1) v++;
+    while (v < variables.size() && variables[v]->GetDomainSize() == 1) {
+        DEBUG( printf("%ld: Variable %ld = %d, 2\n", v, variables[v]->GetId(), variables[v]->GetValue(0)) );
+        v++;
+    }
     if (v == variables.size()) {
         num_solutions++;
-        printf("----- Solution %ld after %ld searches and %.3fs -----\n",
-                num_solutions, search_count, seconds() - start);
+        printf("----- Solution %ld after %ld searches, %ld deadends and %.3fs -----\n",
+                num_solutions, search_count, deadend_count, seconds() - start);
         ShowSolution();
         if (option.num_solutions > 0 && num_solutions >= option.num_solutions) {
             throw true;
@@ -226,11 +230,11 @@ void Problem<T>::Search(size_t v)
     while (variable->GetDomainSize() > 0) {
         StartCheckpoint();
         T value = variable->GetValue(0);
-        DEBUG( printf("Value %d\n", value) );
 
         variable->Decide(value);
         bool consistent = variable->PropagateDecision(NULL);
         consistent = EnforceActiveConstraints(consistent);
+        DEBUG( printf("%ld: Variable %ld = %d, %d\n", v, variable->GetId(), value, consistent) );
         if (consistent) {
             deadend = false;
             Sort(v + 1);
@@ -240,7 +244,11 @@ void Problem<T>::Search(size_t v)
         RestoreCheckpoint();
         variable->Exclude(value);
     }
-    variable->failures += deadend;
+    if (deadend) {
+        deadend_count++;
+        variable->failures = deadend_count;
+        DEBUG( printf("%ld: Variable %ld deadend %ld\n", v, variable->GetId(), variable->failures) );
+    }
 }
 
 template <class T>
