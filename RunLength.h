@@ -113,9 +113,12 @@ bool RunLength<M,B>::Accept(Line &out)
         }
     }
 
+    GetProblem()->IncrementCounter(0);
     cache.line_length = num_inputs;
-    if (cache.Lookup(in, out))
+    if (cache.Lookup(in, out)) {
+        GetProblem()->IncrementCounter(1);
         return out.IsDecided(M); // accept flag is the last bit
+    }
 
     out = in;
     if (automaton.Accept(out, num_inputs)) {

@@ -29,6 +29,9 @@ class Problem
         virtual void ShowState(Variable<T> *current);
         virtual void ShowSolution();
 
+        void IncrementCounter(size_t index, size_t inc = 1);
+        virtual void ShowCounters();
+
     private:
         void AddVariable(Variable<T> *variable);
         bool EnforceActiveConstraints(bool consistent);
@@ -53,6 +56,14 @@ class Problem
         Option                   option;
 
         double                   start, finish;
+
+        struct Counter {
+            const char *         name;
+            size_t               value;
+            Counter(const char *name = NULL, size_t value = 0)
+                : name(name), value(value) {}
+        };
+        Counter                  counters[16];
 };
 
 #include <sys/time.h>
@@ -76,7 +87,7 @@ Problem<T>::~Problem()
 {
     if (!option.interactive) {
         finish = seconds();
-        printf("Total time = %.3fs\n", finish - start);
+        printf("Total time: %.3fs\n", finish - start);
     }
 }
 
@@ -200,6 +211,7 @@ void Problem<T>::Solve()
     } catch (bool result) {
         ;
     }
+    ShowCounters();
 }
 
 template <class T>
@@ -341,6 +353,19 @@ void Problem<T>::ShowSolution()
 {
     printf("----- Solution %ld -----\n", num_solutions);
     ShowState(NULL);
+}
+
+template <class T>
+void Problem<T>::IncrementCounter(size_t index, size_t inc)
+{
+    counters[index].value += inc;
+}
+
+template <class T>
+void Problem<T>::ShowCounters()
+{
+    for (size_t i = 0; counters[i].name; i++)
+        printf("%s: %ld\n", counters[i].name, counters[i].value);
 }
 
 #endif

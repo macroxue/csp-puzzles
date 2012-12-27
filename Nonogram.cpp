@@ -15,6 +15,7 @@ class Nonogram : public Problem<bool>
         Nonogram(Option option, bool rootate);
         void ShowState(Variable<bool> *);
         void ShowSolution();
+        void ShowCounters();
 
     private:
         template <size_t M, size_t B>
@@ -108,6 +109,10 @@ Nonogram::Nonogram(Option option, bool rotate)
     for (int v = 0; v < 4; v++)
         for (int i = 0; i < 128; i++) 
             hash_rand[v][i] = (long(rand()) << 32) + rand();
+
+    // Initialize counters
+    counters[0].name = "Cache lookups";
+    counters[1].name = "Cache hits";
 }
 
 void Nonogram::ShowState(Variable<bool> *current)
@@ -135,6 +140,12 @@ void Nonogram::ShowSolution()
         }
         printf("\n");
     }
+}
+
+void Nonogram::ShowCounters()
+{
+    Problem<bool>::ShowCounters();
+    printf("Hit ratio: %.1f%%\n", 100.0*counters[1].value/counters[0].value);
 }
 
 template <size_t M, size_t B>
