@@ -11,6 +11,7 @@ class Fiver : public Problem<bool>
     public:
         Fiver(Option option, int size);
         void ShowSolution();
+        long GetSolutionCost();
 
     private:
         int  size;
@@ -60,6 +61,15 @@ void Fiver::ShowSolution()
         printf("\n");
     }
     printf("%d moves\n", moves);
+}
+
+long Fiver::GetSolutionCost()
+{
+    int moves = 0;
+    for (int y = 0; y < size; y++)
+        for (int x = 0; x < size; x++)
+            moves += v[x][y]->GetValue(0);
+    return moves;
 }
 
 int main(int argc, char *argv[])

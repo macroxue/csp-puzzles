@@ -12,6 +12,7 @@ struct Option
     bool    debug;
     bool    interactive;
     size_t  num_solutions;
+    bool    optimize;
     enum sort_t { SORT_DISABLED, SORT_DOMAIN_SIZE, SORT_FAILURES };
     sort_t  sort;
 
@@ -25,17 +26,19 @@ Option::Option()
     debug           = false;
     interactive     = false;
     num_solutions   = 2;
+    optimize        = false;
     sort            = SORT_DISABLED;
 }
 
 void Option::GetOptions(int argc, char *argv[])
 {
     int c;
-    while ((c = getopt(argc, argv, "adn:s:")) != -1) {
+    while ((c = getopt(argc, argv, "adn:os:")) != -1) {
         switch (c) {
             case 'a': arc_consistency = true; break;
             case 'd': debug = true; break;
             case 'n': num_solutions = atoi(optarg); break;
+            case 'o': optimize = true; break;
             case 's': 
                 switch (optarg[0]) {
                     case 'd': sort = SORT_DOMAIN_SIZE; break;

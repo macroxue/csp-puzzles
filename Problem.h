@@ -28,6 +28,7 @@ class Problem
         void Solve();
         virtual void ShowState(Variable<T> *current);
         virtual void ShowSolution();
+        virtual long GetSolutionCost();
 
         void IncrementCounter(size_t index, size_t inc = 1);
         virtual void ShowCounters();
@@ -60,10 +61,12 @@ class Problem
         struct Counter {
             const char *         name;
             size_t               value;
-            Counter(const char *name = NULL, size_t value = 0)
+            Counter(const char *name = NULL, size_t value = 0) 
                 : name(name), value(value) {}
         };
         Counter                  counters[16];
+
+        long                     min_cost;
 };
 
 #include <sys/time.h>
@@ -77,7 +80,7 @@ inline double seconds()
 
 template <class T>
 Problem<T>::Problem(Option option)
-    : num_solutions(0), search_count(0), deadend_count(0), option(option)
+    : num_solutions(0), search_count(0), deadend_count(0), option(option), min_cost(LONG_MAX)
 {
     start = seconds();
 }
@@ -173,6 +176,11 @@ bool Problem<T>::EnforceArcConsistency(size_t v)
 template <class T>
 void Problem<T>::Solve()
 {
+    if (option.optimize && GetSolutionCost() == LONG_MAX) {
+        printf("Solution cost function required for optimization mode\n");
+        return;
+    }
+
     for (size_t i = 0; i < constraints.size(); i++) {
         constraints[i]->UpdateBounds();
         ActivateConstraint(constraints[i]);
@@ -226,11 +234,21 @@ void Problem<T>::Search(size_t v)
     }
     if (v == variables.size()) {
         num_solutions++;
-        printf("----- Solution %ld after %ld searches, %ld deadends and %.3fs -----\n",
-                num_solutions, search_count, deadend_count, seconds() - start);
-        ShowSolution();
-        if (option.num_solutions > 0 && num_solutions >= option.num_solutions) {
-            throw true;
+        if (option.optimize) {
+            long cost =  GetSolutionCost();
+            if (min_cost > cost) {
+                min_cost = cost;
+                printf("----- Solution %ld after %ld searches, %ld deadends and %.3fs -----\n",
+                        num_solutions, search_count, deadend_count, seconds() - start);
+                ShowSolution();
+            }
+        } else {
+            printf("----- Solution %ld after %ld searches, %ld deadends and %.3fs -----\n",
+                    num_solutions, search_count, deadend_count, seconds() - start);
+            ShowSolution();
+            if (option.num_solutions > 0 && num_solutions >= option.num_solutions) {
+                throw true;
+            }
         }
         return;
     }
@@ -353,6 +371,12 @@ void Problem<T>::ShowSolution()
 {
     printf("----- Solution %ld -----\n", num_solutions);
     ShowState(NULL);
+}
+
+template <class T>
+long Problem<T>::GetSolutionCost()
+{
+    return LONG_MAX;
 }
 
 template <class T>
