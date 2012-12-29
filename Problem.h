@@ -136,6 +136,10 @@ bool Problem<T>::EnforceActiveConstraints(bool consistent)
 template <class T>
 bool Problem<T>::EnforceArcConsistency(size_t v)
 {
+    // Mark variables active
+    for (size_t i = v; i < variables.size(); i++)
+        variables[i]->active = true;
+
     bool domain_reduced;
     do {
         domain_reduced = false;
@@ -150,6 +154,10 @@ bool Problem<T>::EnforceArcConsistency(size_t v)
         for (size_t i = v; i < variables.size(); i++) {
             Sort(i);
             Variable<T> *variable = variables[i];
+            if (variable->active == false)
+                continue;
+
+            size_t old_domain_size = variable->GetDomainSize();
             for (size_t j = 0; j < variable->GetDomainSize(); j++) {
                 StartCheckpoint();
 
@@ -163,11 +171,20 @@ bool Problem<T>::EnforceArcConsistency(size_t v)
                 if (!consistent) {
                     variable->Exclude(value);
                     j--;
-                    if (variable->GetDomainSize() == 0)
-                        return false;
-                    domain_reduced = true;
                 }
             }
+
+            size_t new_domain_size = variable->GetDomainSize();
+            if (new_domain_size == 0)
+                return false;
+            if (new_domain_size < old_domain_size) {
+                // Reduced domain activates other variables in the same constraints
+                vector<Constraint<T> *> &constraints = variable->GetConstraints();
+                for (size_t j = 0; j < constraints.size(); j++)
+                    constraints[j]->ActivateVariables();
+                domain_reduced = true;
+            }
+            variable->active = false;
         }
     } while (domain_reduced);
     return true;

@@ -36,6 +36,8 @@ class Constraint : public QueueObject
 
         Problem<T> *GetProblem() const { return problem; }
 
+        void ActivateVariables();
+
     protected:
         vector<Variable<T> *>  variables;
 
@@ -98,6 +100,13 @@ void Constraint<T>::GetBounds(T &low, T &high) const
 {
     low  = low_value;
     high = high_value;
+}
+
+template <class T>
+void Constraint<T>::ActivateVariables()
+{
+    for (size_t i = 0; i < variables.size(); i++)
+        variables[i]->active = true;
 }
 
 #endif

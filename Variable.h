@@ -49,10 +49,11 @@ class Variable
         vector<Constraint<T> *>  constraints;
         Storage *                storage;
         const char *             name;
-        size_t                      id;
+        size_t                   id;
 
     public:
-        size_t                      failures;
+        size_t                   failures;
+        bool                     active;
 };
 
 #include "Constraint.h"
@@ -91,6 +92,7 @@ void Variable<T>::Init()
 {
     name       = "";
     failures   = 0;
+    active     = false;
 }
 
 template <class T>
