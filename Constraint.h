@@ -39,7 +39,6 @@ class Constraint : public QueueObject
     protected:
         vector<Variable<T> *>  variables;
 
-        bool active;
         T    low_value, high_value;
 
         friend class Problem<T>;
@@ -52,7 +51,6 @@ class Constraint : public QueueObject
 
 template <class T>
 Constraint<T>::Constraint()
-    : active(false)
 {
 }
 
