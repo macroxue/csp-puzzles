@@ -172,6 +172,7 @@ int main(int argc, char *argv[])
 
     Option option;
     option.sort = Option::SORT_FAILURES;
+    option.arc_consistency = true;
     option.GetOptions(argc, argv);
     if (optind < argc)
         rotate = atoi(argv[optind]) != 0;
