@@ -13,6 +13,7 @@ class Set {
         bool      Has(size_t bit) const;
 
         bool      operator ==(const Set &set) const;
+        uint64_t  Hash(__uint128_t a[], size_t b) const;
 
     private:
         uint64_t  Mask(size_t bit) const;
@@ -64,6 +65,16 @@ template <size_t BITS>
 uint64_t Set<BITS>::Mask(size_t bit) const
 {
     return (uint64_t)1 << bit;
+}
+
+template <size_t BITS>
+uint64_t Set<BITS>::Hash(__uint128_t a[], size_t b) const
+{
+    __uint128_t sum = 0;
+    for (size_t i = 0; i < sizeof(bits)/8; i++) {
+        sum += a[i] * bits[i];
+    }
+    return sum >> (128 - b);
 }
 
 #endif

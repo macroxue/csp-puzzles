@@ -7,7 +7,7 @@ using namespace std;
 #include "RunLength.h"
 #include "Problem.h"
 
-uint64_t hash_rand[4][128];
+__uint128_t hash_rand[2][2];
 
 class Nonogram : public Problem<bool>
 {
@@ -79,14 +79,14 @@ Nonogram::Nonogram(Option option, bool rotate)
     for (int y = 0; y < rows; y++) {
         if (columns < 63) {
             if (columns < 31)
-                CreateRowConstraint<63,512>(y);
+                CreateRowConstraint<63,9>(y);
             else
-                CreateRowConstraint<63,1024>(y);
+                CreateRowConstraint<63,10>(y);
         } else {
             if (columns < 95)
-                CreateRowConstraint<127,2048>(y);
+                CreateRowConstraint<127,11>(y);
             else
-                CreateRowConstraint<127,4096>(y);
+                CreateRowConstraint<127,12>(y);
         }
     }
 
@@ -94,21 +94,25 @@ Nonogram::Nonogram(Option option, bool rotate)
     for (int x = 0; x < columns; x++) {
         if (rows < 63)
             if (rows < 31)
-                CreateColumnConstraint<63,512>(x);
+                CreateColumnConstraint<63,9>(x);
             else
-                CreateColumnConstraint<63,1024>(x);
+                CreateColumnConstraint<63,10>(x);
         else
             if (rows < 95)
-                CreateColumnConstraint<127,2048>(x);
+                CreateColumnConstraint<127,11>(x);
             else
-                CreateColumnConstraint<127,4096>(x);
+                CreateColumnConstraint<127,12>(x);
     }
 
     // Initialize hash random numbers
     srand(1);
-    for (int v = 0; v < 4; v++)
-        for (int i = 0; i < 128; i++) 
-            hash_rand[v][i] = (long(rand()) << 32) + rand();
+    for (int v = 0; v < 2; v++)
+        for (int i = 0; i < 2; i++) {
+            hash_rand[v][i] = ((__uint128_t)rand() << 96)
+                + ((__uint128_t)rand() << 64) + ((__uint128_t)rand() << 32) + rand();
+            // make sure it's an odd number
+            hash_rand[v][i] = (hash_rand[v][i] << 1) + 1;
+        }
 
     // Initialize counters
     counters[0].name = "Cache lookups";

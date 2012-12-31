@@ -29,6 +29,8 @@ class RunLength : public Constraint<bool>
                 bool GetValue(size_t i) const   { return value.Has(i); }
                 void SetValue(size_t i, bool v) { if (v) value.Add(i); else value.Remove(i); }
 
+                uint64_t Hash() const;
+
             private:
                 Set<M+1> value;
                 Set<M+1> decided;
@@ -40,11 +42,9 @@ class RunLength : public Constraint<bool>
                 bool Lookup(const Line &in, Line &out) const;
                 void Update(const Line &in, const Line &out);
 
-                uint64_t Hash(const Line &in) const;
-                size_t   line_length;
             private:
-                Line input[B];
-                Line output[B];
+                Line input[1<<B];
+                Line output[1<<B];
         };
 
         Cache cache;
@@ -114,7 +114,6 @@ bool RunLength<M,B>::Accept(Line &out)
     }
 
     GetProblem()->IncrementCounter(0);
-    cache.line_length = num_inputs;
     if (cache.Lookup(in, out)) {
         GetProblem()->IncrementCounter(1);
         return out.IsDecided(M); // accept flag is the last bit
@@ -147,6 +146,13 @@ void RunLength<M,B>::Line::Show() const
 }
 
 template <size_t M, size_t B>
+uint64_t RunLength<M,B>::Line::Hash() const
+{
+    extern __uint128_t hash_rand[2][2];
+    return (value.Hash(hash_rand[0], B) + decided.Hash(hash_rand[1], B)) % (1 << B);
+}
+
+template <size_t M, size_t B>
 RunLength<M,B>::Cache::Cache()
 {
     // Initialze cache to have invalid inputs
@@ -155,20 +161,9 @@ RunLength<M,B>::Cache::Cache()
 }
 
 template <size_t M, size_t B>
-uint64_t RunLength<M,B>::Cache::Hash(const Line &in) const
-{ 
-    extern uint64_t hash_rand[4][128];
-
-    uint64_t sum = 0;
-    for (size_t i = 0; i < line_length; i++)
-        sum += hash_rand[in.GetValue(i) + in.IsDecided(i)*2][i];
-    return sum;
-}
-
-template <size_t M, size_t B>
 bool RunLength<M,B>::Cache::Lookup(const Line &in, Line &out) const
 {
-    uint64_t index = Hash(in) % B;
+    uint64_t index = in.Hash();
     if (in == input[index]) {
         out = output[index];
         return true;
@@ -179,7 +174,7 @@ bool RunLength<M,B>::Cache::Lookup(const Line &in, Line &out) const
 template <size_t M, size_t B>
 void RunLength<M,B>::Cache::Update(const Line &in, const Line &out)
 {
-    uint64_t index = Hash(in) % B;
+    uint64_t index = in.Hash();
     input[index]  = in;
     output[index] = out;
 }
