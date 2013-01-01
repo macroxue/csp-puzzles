@@ -1,17 +1,35 @@
 #include <stdio.h>
 #include "Automaton.h"
 
-typedef Automaton<bool,2>::Run   Run;
-typedef Automaton<bool,2>::Input Input;
+const size_t M = 12;
+typedef Automaton<bool,2,M>::Run   Run;
 
-void test(Automaton<bool,2> &a, Input input[], size_t input_size)
+class Line : public Automaton<bool,2,M>::Input<Line> {
+    public:
+        bool operator ==(const Line &line) const;
+        void Show() const;
+
+        bool IsDecided(size_t i) const  { return decided.Has(i); }
+        void SetDecided(size_t i)       { decided.Add(i); }
+        bool GetValue(size_t i) const   { return value.Has(i); }
+        void SetValue(size_t i, bool v) { if (v) value.Add(i); else value.Remove(i); }
+
+        uint64_t Hash() const;
+
+    private:
+        Set<M+1> value;
+        Set<M+1> decided;
+};
+
+
+void test(Automaton<bool,2,M> &a, Line &input, size_t input_size)
 {
     bool accepted = a.Accept(input, input_size);
 
     printf("%s: ", (accepted ? "Accepted" : "Rejected"));
     for (size_t i = 0; i < input_size; i++)
-        if (input[i].decided) 
-            printf("%d ", input[i].value);
+        if (input.IsDecided(i)) 
+            printf("%d ", input.GetValue(i));
         else
             printf("? ");
     printf("\n");
@@ -26,31 +44,26 @@ int main()
     run.push_back(Run(true,  4, Run::EQUAL));
     run.push_back(Run(false, 0, Run::AT_LEAST));
 
-    Automaton<bool,2> a(run);
-    const size_t MAX_LEN = 12;
-    Input input[MAX_LEN];
+    Automaton<bool,2,M> a(run);
 
-    for (size_t len = MAX_LEN/2; len <= MAX_LEN; len++) {
-        for (size_t i = 0; i < len; i++)
-            input[i] = Input(false, false);
+    for (size_t len = M/2; len <= M; len++) {
+        Line input;
         test(a, input, len);
     }
 
-    size_t len = MAX_LEN;
+    size_t len = M;
     for (size_t pos = 0; pos < len; pos++) {
-        for (size_t i = 0; i < len; i++)
-            input[i] = Input(false, false);
-        input[pos].value   = true;
-        input[pos].decided = true;
+        Line input;
+        input.SetValue(pos, true);
+        input.SetDecided(pos);
         test(a, input, len);
     }
 
-    len = MAX_LEN-1;
+    len = M-1;
     for (size_t pos = 0; pos < len; pos++) {
-        for (size_t i = 0; i < len; i++)
-            input[i] = Input(false, false);
-        input[pos].value   = false;
-        input[pos].decided = true;
+        Line input;
+        input.SetValue(pos, false);
+        input.SetDecided(pos);
         test(a, input, len);
     }
 

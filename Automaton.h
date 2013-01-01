@@ -62,15 +62,13 @@ class Automaton
             Set<M>                 member_states;
             size_t                 num_states;
             State *                states[M];
-            Set<M>                 member_inputs;
+            Set<N>                 member_inputs;
             size_t                 num_inputs;
             T                      inputs[N];
             vector<Transition>     transition;
 
             void AddState(State *state);
-            void RemoveState(State *state, size_t s);
             void AddInput(T value);
-            void RemoveInput(T value, size_t j);
             void AddTransition(State *from, State *to, T value);
         };
 
@@ -78,9 +76,6 @@ class Automaton
         State             * accept;
         vector<State *>     all_states;
         vector<PowerState>  power_states;
-
-        template <class I>
-            bool RejectState(size_t i, State *state, Input<I> &input, size_t input_size);
 };
 
 template <class T, size_t N, size_t M>
@@ -130,16 +125,16 @@ bool Automaton<T,N,M>::Accept(Input<I> &input, size_t input_size)
     // construct power states and transitions based on input
     for (size_t i = 0; i < input_size; i++) {
         PowerState &power_state = power_states[i];
-        State **states = power_state.states;
-        for (size_t s = 0; s < power_state.num_states; s++) {
-            bool valid = false;
+        PowerState &next_power_state = power_states[i+1];
 
+        for (size_t s = 0; s < power_state.num_states; s++) {
             for (size_t v = 0; v < N; v++) {
                 T  value = (T)v;
                 if (input.IsDecided(i) && value != input.GetValue(i))
                     continue;
 
-                State *next_state = states[s]->Transit(value);
+                State *state = power_state.states[s];
+                State *next_state = state->Transit(value);
                 if (next_state == NULL)
                     continue;
 
@@ -148,84 +143,33 @@ bool Automaton<T,N,M>::Accept(Input<I> &input, size_t input_size)
                 if (next_state->dist_to_acc > num_inputs_left) 
                     continue;
 
-                power_state.AddTransition(states[s], next_state, value);
-                power_state.member_inputs.Add(value);
-                power_states[i + 1].AddState(next_state);
-                valid = true;
-            }
-
-            if (!valid) {
-                valid = RejectState(i, states[s], input, input_size);
-                if (!valid)
-                    return false;
+                power_state.AddTransition(state, next_state, value);
+                next_power_state.AddState(next_state);
             }
         }
 
-        // build inputs from member set
-        power_state.num_inputs = 0;
-        for (size_t v = 0; v < N; v++) {
-            T  value = (T)v;
-            if (power_state.member_inputs.Has(value))
-                power_state.inputs[power_state.num_inputs++] = value;
-        }
-
-        if (power_state.num_inputs == 0)
+        if (next_power_state.num_states == 0)
             return false;
+    }
+
+    // prune deadends backwards
+    for (size_t i = input_size; i > 0; i--) {
+        PowerState &power_state = power_states[i-1];
+        PowerState &next_power_state = power_states[i];
+
+        // gather valid states and inputs
+        power_state.member_states.Clear();
+        for (size_t t = 0; t < power_state.transition.size(); t++) {
+            Transition &transition = power_state.transition[t];
+            if (next_power_state.member_states.Has(transition.to->id)) {
+                power_state.member_states.Add(transition.from->id);
+                power_state.AddInput(transition.value);
+            }
+        }
+
         if (power_state.num_inputs == 1) {
-            input.SetValue(i, power_state.inputs[0]);
-            input.SetDecided(i);
-        }
-    }
-
-    return true;
-}
-
-template <class T, size_t N, size_t M> template <class I>
-bool Automaton<T,N,M>::RejectState(size_t i, State *state, Input<I> &input, size_t input_size)
-{
-    if (i == 0)
-        return true;
-    i--;
-
-    // compute the sets of from-states and inputs, after removal of to-states
-    Set<M> member_states, member_inputs;
-    PowerState &power_state = power_states[i];
-    vector<Transition> &transition = power_state.transition;
-    size_t size = transition.size();
-    for (size_t t = 0; t < size; t++) {
-        if (transition[t].to == state) {
-            transition[t] = transition[--size];
-            t--;
-        } else {
-            member_states.Add(transition[t].from->id);
-            member_inputs.Add(transition[t].value);
-        }
-    }
-    transition.erase(transition.begin() + size, transition.end());
-
-    // remove unacceptable inputs
-    for (size_t j = 0; j < power_state.num_inputs; j++) {
-        T value = power_state.inputs[j];
-        if (!member_inputs.Has(value)) {
-            power_state.RemoveInput(value, j);
-            j--;
-        }
-    }
-
-    if (power_state.num_inputs == 0)
-        return false;
-    if (power_state.num_inputs == 1) {
-        input.SetValue(i, power_state.inputs[0]);
-        input.SetDecided(i);
-    }
-
-    // remove unreachable from-states
-    for (size_t s = 0; s < power_state.num_states; s++) {
-        State *from_state = power_state.states[s];
-        if (!member_states.Has(from_state->id)) {
-            power_state.RemoveState(from_state, s);
-            s--;
-            RejectState(i, from_state, input, input_size);
+            input.SetValue(i-1, power_state.inputs[0]);
+            input.SetDecided(i-1);
         }
     }
 
@@ -256,26 +200,12 @@ void Automaton<T,N,M>::PowerState::AddState(State *state)
 }
 
 template <class T, size_t N, size_t M>
-void Automaton<T,N,M>::PowerState::RemoveState(State *state, size_t s)
-{
-    member_states.Remove(state->id);
-    states[s] = states[--num_states];
-}
-
-template <class T, size_t N, size_t M>
 void Automaton<T,N,M>::PowerState::AddInput(T value)
 {
     if (!member_inputs.Has(value)) {
         member_inputs.Add(value);
         inputs[num_inputs++] = value;
     }
-}
-
-template <class T, size_t N, size_t M>
-void Automaton<T,N,M>::PowerState::RemoveInput(T value, size_t j)
-{
-    member_inputs.Remove(value);
-    inputs[j] = inputs[--num_inputs];
 }
 
 template <class T, size_t N, size_t M>
