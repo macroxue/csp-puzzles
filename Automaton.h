@@ -60,15 +60,14 @@ class Automaton
             Set<M>                 member_states;
             size_t                 num_states;
             State *                states[M];
-            vector<Transition *>   transitions;
 
             void AddState(State *state);
         };
 
-        State             * start;
-        State             * accept;
-        vector<State *>     all_states;
-        vector<PowerState>  power_states;
+        State *               start;
+        State *               accept;
+        vector<State *>       all_states;
+        vector<Transition *>  power_transition[M];
 };
 
 template <class T, size_t N, size_t M>
@@ -101,25 +100,21 @@ template <class T, size_t N, size_t M> template <class I>
 bool Automaton<T,N,M>::Accept(Input<I> &input, size_t input_size)
 {
     // initialize power states
-    size_t new_size = input_size + 1;
-    if (power_states.size() < new_size) 
-        power_states.resize(new_size);
-
-    for (size_t i = 0; i < new_size; i++) {
-        power_states[i].member_states.Clear();
-        power_states[i].num_states = 0;
-        power_states[i].transitions.clear();
-    }
-
-    power_states[0].AddState(start);
+    PowerState power_states[2];
+    PowerState *power_state = &power_states[0], *next_power_state = &power_states[1];
+    next_power_state->num_states = 0;
+    next_power_state->AddState(start);
 
     // construct power states and transitions based on input
     for (size_t i = 0; i < input_size; i++) {
-        PowerState &power_state = power_states[i];
-        PowerState &next_power_state = power_states[i+1];
 
-        for (size_t s = 0; s < power_state.num_states; s++) {
-            State *state = power_state.states[s];
+        swap(power_state, next_power_state);
+        next_power_state->member_states.Clear();
+        next_power_state->num_states = 0;
+        power_transition[i].clear();
+
+        for (size_t s = 0; s < power_state->num_states; s++) {
+            State *state = power_state->states[s];
             for (size_t v = 0; v < N; v++) {
                 Transition &transition = state->transitions[v];
 
@@ -136,29 +131,27 @@ bool Automaton<T,N,M>::Accept(Input<I> &input, size_t input_size)
                 if (transition.to->dist_to_acc > num_inputs_left) 
                     continue;
 
-                power_state.transitions.push_back(&transition);
-                next_power_state.AddState(transition.to);
+                power_transition[i].push_back(&transition);
+                next_power_state->AddState(transition.to);
             }
         }
 
-        if (next_power_state.num_states == 0)
+        if (next_power_state->num_states == 0)
             return false;
     }
 
     // prune deadends backwards
     for (size_t i = input_size; i > 0; i--) {
-        PowerState &power_state = power_states[i-1];
-        PowerState &next_power_state = power_states[i];
 
         // gather valid states and inputs
         Set<N>  member_inputs;
         size_t  num_inputs = 0;
         T       inputs[N];
-        power_state.member_states.Clear();
-        for (size_t t = 0; t < power_state.transitions.size(); t++) {
-            Transition &transition = *power_state.transitions[t];
-            if (next_power_state.member_states.Has(transition.to->id)) {
-                power_state.member_states.Add(transition.from->id);
+        power_state->member_states.Clear();
+        for (size_t t = 0; t < power_transition[i-1].size(); t++) {
+            Transition &transition = *power_transition[i-1][t];
+            if (next_power_state->member_states.Has(transition.to->id)) {
+                power_state->member_states.Add(transition.from->id);
                 T value = transition.value;
                 if (!member_inputs.Has(value)) {
                     member_inputs.Add(value);
@@ -171,6 +164,8 @@ bool Automaton<T,N,M>::Accept(Input<I> &input, size_t input_size)
             input.SetValue(i-1, inputs[0]);
             input.SetDecided(i-1);
         }
+
+        swap(power_state, next_power_state);
     }
 
     return true;
