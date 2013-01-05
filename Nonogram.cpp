@@ -122,28 +122,33 @@ Nonogram::Nonogram(Option option, bool rotate)
 
 void Nonogram::ShowState(Variable<bool> *current)
 {
+    char line[columns * 2 + 1];
     for (int y = 0; y < rows; y++) {
         for (int x = 0; x < columns; x++) {
             if (grid[x][y].GetDomainSize() == 1) {
                 bool value = grid[x][y].GetValue(0);
-                putchar(value ? 'O' : '.');
+                line[x * 2] = (value ? 'O' : '.');
             } else {
-                putchar(' ');
+                line[x * 2] = ' ';
             }
-            putchar(current == &grid[x][y] ? '*' : ' ');
+            line[x * 2 + 1] = (current == &grid[x][y] ? '*' : ' ');
         }
-        printf("\n");
+        line[columns * 2] = '\0';
+        puts(line);
     }
 }
 
 void Nonogram::ShowSolution()
 {
+    char line[columns * 2 + 1];
     for (int y = 0; y < rows; y++) {
         for (int x = 0; x < columns; x++) {
             bool value = grid[x][y].GetValue(0);
-            printf("%c ", (value ? 'O' : '.'));
+            line[x * 2] = (value ? 'O' : '.');
+            line[x * 2 + 1] = ' ';
         }
-        printf("\n");
+        line[columns * 2] = '\0';
+        puts(line);
     }
 }
 
