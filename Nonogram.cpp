@@ -24,7 +24,7 @@ class Nonogram : public Problem<bool>
             void CreateColumnConstraint(int x);
 
         int  columns, rows;
-        vector< vector<Variable<bool> * > >  grid;
+        vector< vector<Variable<bool> > >  grid;
         vector< vector<int> >  column_runs;
         vector< vector<int> >  row_runs;
 };
@@ -41,7 +41,11 @@ Nonogram::Nonogram(Option option, bool rotate)
         sscanf(line, "%d %d", &columns, &rows);
 
     row_runs.resize(rows);
+    for (int i = 0; i < rows; i++)
+        row_runs[i].reserve((columns+1)/2);
     column_runs.resize(columns);
+    for (int i = 0; i < columns; i++)
+        column_runs[i].reserve((rows+1)/2);
     for (int i = 0; i < rows + columns; i++) {
         do fgets(line, sizeof(line), stdin);
         while (line[0] == '#');
@@ -71,37 +75,34 @@ Nonogram::Nonogram(Option option, bool rotate)
     // Create variables
     bool domain[2] = { false, true };
     grid.resize(columns);
-    for (int x = 0; x < columns; x++)
+    for (int x = 0; x < columns; x++) {
+        grid[x].reserve(rows);
         for (int y = 0; y < rows; y++)
-            grid[x].push_back( new Variable<bool>(domain, 2) );
+            new (&grid[x][y]) Variable<bool>(domain, 2);
+    }
 
     // Create row constraints
     for (int y = 0; y < rows; y++) {
-        if (columns < 63) {
-            if (columns < 31)
-                CreateRowConstraint<63,9>(y);
-            else
-                CreateRowConstraint<63,10>(y);
-        } else {
-            if (columns < 95)
-                CreateRowConstraint<127,11>(y);
-            else
-                CreateRowConstraint<127,12>(y);
-        }
+        if (columns < 31)
+            CreateRowConstraint<31,9>(y);
+        else if (columns < 63) 
+            CreateRowConstraint<63,10>(y);
+        else if (columns < 95)
+            CreateRowConstraint<95,11>(y);
+        else
+            CreateRowConstraint<127,12>(y);
     }
 
     // Create column constraints
     for (int x = 0; x < columns; x++) {
-        if (rows < 63)
-            if (rows < 31)
-                CreateColumnConstraint<63,9>(x);
-            else
-                CreateColumnConstraint<63,10>(x);
+        if (rows < 31)
+            CreateColumnConstraint<31,9>(x);
+        else if (rows < 63)
+            CreateColumnConstraint<63,10>(x);
+        else if (rows < 95)
+            CreateColumnConstraint<95,11>(x);
         else
-            if (rows < 95)
-                CreateColumnConstraint<127,11>(x);
-            else
-                CreateColumnConstraint<127,12>(x);
+            CreateColumnConstraint<127,12>(x);
     }
 
     // Initialize hash random numbers
@@ -123,13 +124,13 @@ void Nonogram::ShowState(Variable<bool> *current)
 {
     for (int y = 0; y < rows; y++) {
         for (int x = 0; x < columns; x++) {
-            if (grid[x][y]->GetDomainSize() == 1) {
-                bool value = grid[x][y]->GetValue(0);
+            if (grid[x][y].GetDomainSize() == 1) {
+                bool value = grid[x][y].GetValue(0);
                 putchar(value ? 'O' : '.');
             } else {
                 putchar(' ');
             }
-            putchar(current == grid[x][y] ? '*' : ' ');
+            putchar(current == &grid[x][y] ? '*' : ' ');
         }
         printf("\n");
     }
@@ -139,7 +140,7 @@ void Nonogram::ShowSolution()
 {
     for (int y = 0; y < rows; y++) {
         for (int x = 0; x < columns; x++) {
-            bool value = grid[x][y]->GetValue(0);
+            bool value = grid[x][y].GetValue(0);
             printf("%c ", (value ? 'O' : '.'));
         }
         printf("\n");
@@ -157,7 +158,7 @@ void Nonogram::CreateRowConstraint(int y)
 {
     RunLength<M,B> *r = new RunLength<M,B>(row_runs[y]);
     for (int x = 0; x < columns; x++) 
-        r->AddVariable(grid[x][y]);
+        r->AddVariable(&grid[x][y]);
     AddConstraint(r);
 }
 
@@ -166,7 +167,7 @@ void Nonogram::CreateColumnConstraint(int x)
 {
     RunLength<M,B> *r = new RunLength<M,B>(column_runs[x]);
     for (int y = 0; y < rows; y++)
-        r->AddVariable(grid[x][y]);
+        r->AddVariable(&grid[x][y]);
     AddConstraint(r);
 }
 
