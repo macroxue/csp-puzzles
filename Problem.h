@@ -10,6 +10,9 @@
 #include <vector>
 using namespace std;
 
+#include <sys/time.h>
+#include <sys/resource.h>
+
 #define DEBUG( statement )  if (option.debug) statement
 
 //
@@ -21,7 +24,10 @@ class Problem
     public:
         Problem(Option option);
         ~Problem();
-        void GetOptions(int argc, char *argv[]);
+
+        double GetTimeUsage();     // in seconds
+        size_t GetMemoryUsage();   // in kilo-bytes
+
         void AddConstraint(size_t num_variables, ...);
         void AddConstraint(Constraint<T> *constraint);
         void ActivateConstraint(Constraint<T> *constraint);
@@ -56,8 +62,6 @@ class Problem
 
         Option                   option;
 
-        double                   start, finish;
-
         struct Counter {
             const char *         name;
             size_t               value;
@@ -71,27 +75,36 @@ class Problem
 
 #include <sys/time.h>
 
-inline double seconds()
-{
-    struct timeval time_v;
-    gettimeofday(&time_v, NULL);
-    return time_v.tv_sec + time_v.tv_usec * 1e-6;
-}
-
 template <class T>
 Problem<T>::Problem(Option option)
     : num_solutions(0), search_count(0), deadend_count(0), option(option), min_cost(LONG_MAX)
 {
-    start = seconds();
 }
 
 template <class T>
 Problem<T>::~Problem()
 {
     if (!option.interactive) {
-        finish = seconds();
-        printf("Total time: %.3fs\n", finish - start);
+        printf("Total time: %.3f s\n", GetTimeUsage());
+        printf("Total memory: %ld KB\n", GetMemoryUsage());
     }
+}
+
+template <class T>
+double Problem<T>::GetTimeUsage()
+{
+    struct rusage usage;
+    getrusage(RUSAGE_SELF, &usage);
+    return (usage.ru_utime.tv_sec + usage.ru_stime.tv_sec)
+        + (usage.ru_utime.tv_usec + usage.ru_stime.tv_usec)*1e-6;
+}
+
+template <class T>
+size_t Problem<T>::GetMemoryUsage()
+{
+    struct rusage usage;
+    getrusage(RUSAGE_SELF, &usage);
+    return usage.ru_maxrss;
 }
 
 template <class T>
@@ -218,7 +231,6 @@ void Problem<T>::Solve()
 
     if (option.arc_consistency) {
         bool consistent = EnforceArcConsistency(0);
-        printf("Arc consistency time = %.3fs\n", seconds() - start);
         if (!consistent)
             return;
     }
@@ -256,12 +268,12 @@ void Problem<T>::Search(size_t v)
             if (min_cost > cost) {
                 min_cost = cost;
                 printf("----- Solution %ld after %ld searches, %ld deadends and %.3fs -----\n",
-                        num_solutions, search_count, deadend_count, seconds() - start);
+                        num_solutions, search_count, deadend_count, GetTimeUsage());
                 ShowSolution();
             }
         } else {
             printf("----- Solution %ld after %ld searches, %ld deadends and %.3fs -----\n",
-                    num_solutions, search_count, deadend_count, seconds() - start);
+                    num_solutions, search_count, deadend_count, GetTimeUsage());
             ShowSolution();
             if (option.num_solutions > 0 && num_solutions >= option.num_solutions) {
                 throw true;
