@@ -60,13 +60,9 @@ class Automaton
             Set<M>                 member_states;
             size_t                 num_states;
             State *                states[M];
-            Set<N>                 member_inputs;
-            size_t                 num_inputs;
-            T                      inputs[N];
             vector<Transition *>   transitions;
 
             void AddState(State *state);
-            void AddInput(T value);
         };
 
         State             * start;
@@ -112,8 +108,6 @@ bool Automaton<T,N,M>::Accept(Input<I> &input, size_t input_size)
     for (size_t i = 0; i < new_size; i++) {
         power_states[i].member_states.Clear();
         power_states[i].num_states = 0;
-        power_states[i].member_inputs.Clear();
-        power_states[i].num_inputs = 0;
         power_states[i].transitions.clear();
     }
 
@@ -157,17 +151,24 @@ bool Automaton<T,N,M>::Accept(Input<I> &input, size_t input_size)
         PowerState &next_power_state = power_states[i];
 
         // gather valid states and inputs
+        Set<N>  member_inputs;
+        size_t  num_inputs = 0;
+        T       inputs[N];
         power_state.member_states.Clear();
         for (size_t t = 0; t < power_state.transitions.size(); t++) {
             Transition &transition = *power_state.transitions[t];
             if (next_power_state.member_states.Has(transition.to->id)) {
                 power_state.member_states.Add(transition.from->id);
-                power_state.AddInput(transition.value);
+                T value = transition.value;
+                if (!member_inputs.Has(value)) {
+                    member_inputs.Add(value);
+                    inputs[num_inputs++] = value;
+                }
             }
         }
 
-        if (power_state.num_inputs == 1) {
-            input.SetValue(i-1, power_state.inputs[0]);
+        if (num_inputs == 1) {
+            input.SetValue(i-1, inputs[0]);
             input.SetDecided(i-1);
         }
     }
@@ -192,15 +193,6 @@ void Automaton<T,N,M>::PowerState::AddState(State *state)
     if (!member_states.Has(state->id)) {
         member_states.Add(state->id);
         states[num_states++] = state;
-    }
-}
-
-template <class T, size_t N, size_t M>
-void Automaton<T,N,M>::PowerState::AddInput(T value)
-{
-    if (!member_inputs.Has(value)) {
-        member_inputs.Add(value);
-        inputs[num_inputs++] = value;
     }
 }
 
