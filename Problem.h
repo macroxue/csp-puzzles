@@ -183,6 +183,7 @@ bool Problem<T>::EnforceArcConsistency(size_t v)
 
                 if (!consistent) {
                     variable->Exclude(value);
+                    variable->failures++;
                     j--;
                 }
             }
