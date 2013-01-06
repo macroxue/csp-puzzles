@@ -28,6 +28,8 @@ class Variable
         void AddConstraint(Constraint<T> *constraint);
         bool PropagateDecision(Constraint<T> *start);
         bool PropagateReduction(Constraint<T> *start);
+        void ActivateAffectedVariables();
+
         void OnUpdate();
         void Decide(T value);
         bool Exclude(T value);
@@ -150,6 +152,13 @@ bool Variable<T>::PropagateReduction(Constraint<T> *start)
             return false;
     }
     return true;
+}
+
+template <class T>
+void Variable<T>::ActivateAffectedVariables()
+{
+    for (size_t i = 0; i < constraints.size(); i++)
+        constraints[i]->ActivateVariables();
 }
 
 template <class T>

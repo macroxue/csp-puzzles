@@ -149,10 +149,6 @@ bool Problem<T>::EnforceActiveConstraints(bool consistent)
 template <class T>
 bool Problem<T>::EnforceArcConsistency(size_t v)
 {
-    // Mark variables active
-    for (size_t i = v; i < variables.size(); i++)
-        variables[i]->active = true;
-
     bool domain_reduced;
     do {
         domain_reduced = false;
@@ -183,7 +179,6 @@ bool Problem<T>::EnforceArcConsistency(size_t v)
 
                 if (!consistent) {
                     variable->Exclude(value);
-                    variable->failures++;
                     j--;
                 }
             }
@@ -192,10 +187,7 @@ bool Problem<T>::EnforceArcConsistency(size_t v)
             if (new_domain_size == 0)
                 return false;
             if (new_domain_size < old_domain_size) {
-                // Reduced domain activates other variables in the same constraints
-                vector<Constraint<T> *> &constraints = variable->GetConstraints();
-                for (size_t j = 0; j < constraints.size(); j++)
-                    constraints[j]->ActivateVariables();
+                variable->ActivateAffectedVariables();
                 domain_reduced = true;
             }
             variable->active = false;
@@ -231,6 +223,10 @@ void Problem<T>::Solve()
         return;
 
     if (option.arc_consistency) {
+        // Mark variables active
+        for (size_t i = 0; i < variables.size(); i++)
+            variables[i]->active = true;
+
         bool consistent = EnforceArcConsistency(0);
         if (!consistent)
             return;
@@ -294,8 +290,10 @@ void Problem<T>::Search(size_t v)
         variable->Decide(value);
         bool consistent = variable->PropagateDecision(NULL);
         consistent = EnforceActiveConstraints(consistent);
-        if (consistent && option.arc_consistency)
+        if (consistent && option.arc_consistency) {
+            variable->ActivateAffectedVariables();
             consistent = EnforceArcConsistency(v+1);
+        }
         DEBUG( printf("%ld: Variable %ld = %d, %d\n", v, variable->GetId(), value, consistent) );
         if (consistent) {
             deadend = false;
