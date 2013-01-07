@@ -2,46 +2,34 @@ CONSTRAINTS=Function.h FunctionAC.h OneToOne.h Different.h Same.h
 FRAMEWORK=Problem.h $(CONSTRAINTS) Constraint.h Variable.h Domain.h Queue.h \
 	  Option.h
 
-PUZZLES=Fiver Sudoku SendMoreMoney Zebra Queens Strimko Crossword Nonogram \
-        MasterMind Kakuro
-
 OPTS=-Wall -O3
 
+ifeq ($(wildcard Framework), )
+    # build one puzzle in current directory
+    PUZZLES=$(shell basename $(PWD))
+    VPATH=../Framework
+    INCS=-I../Framework
+else
+    # build all puzzles
+    PUZZLES=Fiver/Fiver Sudoku/Sudoku SendMoreMoney/SendMoreMoney Zebra/Zebra \
+	    Queens/Queens Strimko/Strimko Crossword/Crossword Nonogram/Nonogram \
+	    MasterMind/MasterMind Kakuro/Kakuro
+    VPATH=./Framework:./Nonogram
+    INCS=-I./Framework
+endif
+
 all: $(PUZZLES)
+
+$(filter Nonogram%,$(PUZZLES)): RunLength.h Automaton.h Set.h
+
+$(PUZZLES): %: %.cpp $(FRAMEWORK)
+	g++ $(OPTS) $(INCS) -o $@ $(filter %.cpp,$<) 
+
+.PHONY: clean test
 
 clean:
 	rm -f $(PUZZLES)
 
-test:
+test: $(PUZZLES)
 	./test.sh 2>&1 | tee test.out
-
-Fiver : Fiver.cpp $(FRAMEWORK)
-	g++ $(OPTS) -o $@ $(filter %.cpp,$^)
-
-Sudoku : Sudoku.cpp $(FRAMEWORK)
-	g++ $(OPTS) -o $@ $(filter %.cpp,$^)
-
-SendMoreMoney: SendMoreMoney.cpp $(FRAMEWORK)
-	g++ $(OPTS) -o $@ $(filter %.cpp,$^) 
-
-Zebra: Zebra.cpp $(FRAMEWORK)
-	g++ $(OPTS) -o $@ $(filter %.cpp,$^) 
-
-Queens: Queens.cpp $(FRAMEWORK)
-	g++ $(OPTS) -o $@ $(filter %.cpp,$^) 
-
-Strimko: Strimko.cpp $(FRAMEWORK)
-	g++ $(OPTS) -o $@ $(filter %.cpp,$^) 
-
-Crossword: Crossword.cpp $(FRAMEWORK)
-	g++ $(OPTS) -o $@ $(filter %.cpp,$^) 
-
-Nonogram: Nonogram.cpp $(FRAMEWORK) RunLength.h Automaton.h Set.h
-	g++ $(OPTS) -o $@ $(filter %.cpp,$^) 
-
-MasterMind: MasterMind.cpp $(FRAMEWORK)
-	g++ $(OPTS) -o $@ $(filter %.cpp,$^) 
-
-Kakuro: Kakuro.cpp $(FRAMEWORK)
-	g++ $(OPTS) -o $@ $(filter %.cpp,$^) 
 

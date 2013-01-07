@@ -1,20 +1,20 @@
 #!/bin/sh
 
-time Crossword
-time SendMoreMoney
-time Zebra
-time Queens 200 1
-time Fiver 20
-for INPUT in sudoku.in*; do
-    time Sudoku < $INPUT
+time Crossword/Crossword
+time SendMoreMoney/SendMoreMoney
+time Zebra/Zebra
+time Queens/Queens 200 1
+time Fiver/Fiver 20
+for INPUT in Sudoku/sudoku.in*; do
+    time Sudoku/Sudoku < $INPUT
 done
-for INPUT in strimko.in*; do
-    time Strimko < $INPUT
+for INPUT in Strimko/strimko.in*; do
+    time Strimko/Strimko < $INPUT
 done
-for INPUT in nonogram.in*; do
-    time Nonogram < $INPUT
+for INPUT in Nonogram/nonogram.in*; do
+    time Nonogram/Nonogram < $INPUT
 done
-for INPUT in kakuro.in*; do
-    time Kakuro < $INPUT
+for INPUT in Kakuro/kakuro.in*; do
+    time Kakuro/Kakuro < $INPUT
 done
 
