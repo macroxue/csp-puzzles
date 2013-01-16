@@ -64,6 +64,14 @@ class Automaton
             void AddState(State *state);
         };
 
+        struct PowerInput {
+            Set<N>            member_inputs;
+            size_t            num_inputs;
+            T                 inputs[N];
+
+            void AddInput(T value);
+        };
+
         State *               start;
         State *               accept;
         vector<State *>       all_states;
@@ -144,24 +152,22 @@ bool Automaton<T,N,M>::Accept(Input<I> &input, size_t input_size)
     for (size_t i = input_size; i > 0; i--) {
 
         // gather valid states and inputs
-        Set<N>  member_inputs;
-        size_t  num_inputs = 0;
-        T       inputs[N];
+        PowerInput  power_input;
+        power_input.num_inputs = 0;
         power_state->member_states.Clear();
         for (size_t t = 0; t < power_transition[i-1].size(); t++) {
             Transition &transition = *power_transition[i-1][t];
             if (next_power_state->member_states.Has(transition.to->id)) {
                 power_state->member_states.Add(transition.from->id);
-                T value = transition.value;
-                if (!member_inputs.Has(value)) {
-                    member_inputs.Add(value);
-                    inputs[num_inputs++] = value;
-                }
+
+                // only care about whether there is a single input
+                if (power_input.num_inputs <= 1)
+                    power_input.AddInput(transition.value);
             }
         }
 
-        if (num_inputs == 1) {
-            input.SetValue(i-1, inputs[0]);
+        if (power_input.num_inputs == 1) {
+            input.SetValue(i-1, power_input.inputs[0]);
             input.SetDecided(i-1);
         }
 
@@ -188,6 +194,15 @@ void Automaton<T,N,M>::PowerState::AddState(State *state)
     if (!member_states.Has(state->id)) {
         member_states.Add(state->id);
         states[num_states++] = state;
+    }
+}
+
+template <class T, size_t N, size_t M>
+void Automaton<T,N,M>::PowerInput::AddInput(T value) 
+{
+    if (!member_inputs.Has(value)) {
+        member_inputs.Add(value);
+        inputs[num_inputs++] = value;
     }
 }
 
