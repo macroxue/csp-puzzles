@@ -36,7 +36,7 @@ class Automaton
         Automaton() {}
         Automaton(vector<Run> &run);
         template <class I>
-            bool Accept(Input<I> &input, size_t input_size);
+            bool Accept(const Input<I> &input, Input<I> &output, size_t input_size);
 
     private:
 
@@ -105,7 +105,7 @@ Automaton<T,N,M>::Automaton(vector<Run> &run)
 }
 
 template <class T, size_t N, size_t M> template <class I>
-bool Automaton<T,N,M>::Accept(Input<I> &input, size_t input_size)
+bool Automaton<T,N,M>::Accept(const Input<I> &input, Input<I> &output, size_t input_size)
 {
     // initialize power states
     PowerState power_states[2];
@@ -167,8 +167,8 @@ bool Automaton<T,N,M>::Accept(Input<I> &input, size_t input_size)
         }
 
         if (power_input.num_inputs == 1) {
-            input.SetValue(i-1, power_input.inputs[0]);
-            input.SetDecided(i-1);
+            output.SetValue(i-1, power_input.inputs[0]);
+            output.SetDecided(i-1);
         }
 
         swap(power_state, next_power_state);

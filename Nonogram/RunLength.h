@@ -49,7 +49,7 @@ class RunLength : public Constraint<bool>
 
         Cache cache;
 
-        bool Accept(Line &out);
+        bool Accept(const Line &in, Line &out, size_t num_variables);
 };
 
 template <size_t M, size_t B>
@@ -80,15 +80,30 @@ bool RunLength<M,B>::Enforce()
     vector<Variable<bool> *>  &variables = Constraint<bool>::variables;
     size_t num_variables = variables.size();
 
-    Line out;
-    if (!Accept(out))
-        return false;
+    Variable<bool> *  undecided_variables[num_variables];
+    size_t            undecided_indexes[num_variables];
+    size_t            num_undecided = 0;
+    Line              in, out;
 
     for (size_t i = 0; i < num_variables; i++) {
-        if (variables[i]->GetDomainSize() > 1 && out.IsDecided(i)) {
-            variables[i]->Decide(out.GetValue(i));
+        if (variables[i]->GetDomainSize() == 1) {
+            in.SetValue(i, variables[i]->GetValue(0));
+            in.SetDecided(i);
+        } else {
+            undecided_variables[num_undecided] = variables[i];
+            undecided_indexes[num_undecided] = i;
+            num_undecided++;
+        }
+    }
 
-            vector<Constraint<bool>*> &constraints = variables[i]->GetConstraints();
+    if (!Accept(in, out, num_variables))
+        return false;
+
+    for (size_t i = 0; i < num_undecided; i++) {
+        if (out.IsDecided(undecided_indexes[i])) {
+            undecided_variables[i]->Decide(out.GetValue(undecided_indexes[i]));
+
+            vector<Constraint<bool>*> &constraints = undecided_variables[i]->GetConstraints();
             for (size_t j = 0; j < constraints.size(); j++) {
                 if (constraints[j] != this)
                     problem->ActivateConstraint(constraints[j]);
@@ -100,27 +115,15 @@ bool RunLength<M,B>::Enforce()
 }
 
 template <size_t M, size_t B>
-bool RunLength<M,B>::Accept(Line &out)
+bool RunLength<M,B>::Accept(const Line &in, Line &out, size_t num_variables)
 {
-    vector<Variable<bool> *>  &variables = Constraint<bool>::variables;
-    size_t num_inputs = variables.size();
-
-    Line in;
-    for (size_t i = 0; i < num_inputs; i++) {
-        if (variables[i]->GetDomainSize() == 1) {
-            in.SetValue(i, variables[i]->GetValue(0));
-            in.SetDecided(i);
-        }
-    }
-
     GetProblem()->IncrementCounter(0);
     if (cache.Lookup(in, out)) {
         GetProblem()->IncrementCounter(1);
         return out.IsDecided(M); // accept flag is the last bit
     }
 
-    out = in;
-    if (automaton.Accept(out, num_inputs)) {
+    if (automaton.Accept(in, out, num_variables)) {
         out.SetDecided(M); // accept flag is the last bit
         cache.Update(in, out);
         // printf("%p %zu accepts:", this, in.Hash() % 1024); in.Show(); putchar('\n');
