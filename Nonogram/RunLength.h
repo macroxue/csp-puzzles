@@ -159,8 +159,9 @@ template <size_t M, size_t B>
 RunLength<M,B>::Cache::Cache()
 {
     // Initialze cache to have invalid inputs
-    for (size_t i = 0; i < B; i++)
-        input[i].SetValue(M, true);
+    // Only need to take care of the default Line value
+    uint64_t index = Line().Hash();
+    input[index].SetValue(0, true);
 }
 
 template <size_t M, size_t B>
