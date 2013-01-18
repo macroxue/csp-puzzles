@@ -43,23 +43,23 @@ class Automaton
         struct State;
 
         struct Transition {
-            State   *from;
-            State   *to;
-            T       value;
+            State *           from;
+            State *           to;
+            T                 value;
         };
 
         struct State {
-            size_t           id;
-            size_t           dist_to_acc; // distance to accepting state
-            Transition       transitions[N];
+            size_t            id;
+            size_t            dist_to_acc; // distance to accepting state
+            Transition        transitions[N];
 
             State(size_t id = 0);
         }; 
 
         struct PowerState {
-            Set<M>                 member_states;
-            size_t                 num_states;
-            State *                states[M];
+            Set<M>            member_states;
+            size_t            num_states;
+            State *           states[M];
 
             void AddState(State *state);
         };
@@ -85,7 +85,7 @@ Automaton<T,N,M>::Automaton(vector<Run> &run)
     all_states.push_back(start);
 
     for (size_t i = 0; i < run.size(); i++) {
-        // build finite state machine
+        // Build finite state machine
         T  value = run[i].value;
         for (size_t n = 0; n < run[i].count; n++) {
             State *new_state = new State(all_states.size());
@@ -97,7 +97,7 @@ Automaton<T,N,M>::Automaton(vector<Run> &run)
             accept->transitions[value].to = accept;
     }
 
-    // caculate distance to accepting state
+    // Calculate distance to accepting state
     for (size_t i = 0; i < all_states.size(); i++)
         all_states[i]->dist_to_acc = all_states.size() - 1 - i;
     assert(accept->dist_to_acc == 0);
@@ -107,13 +107,13 @@ Automaton<T,N,M>::Automaton(vector<Run> &run)
 template <class T, size_t N, size_t M> template <class I>
 bool Automaton<T,N,M>::Accept(const Input<I> &input, Input<I> &output, size_t input_size)
 {
-    // initialize power states
+    // Initialize power states
     PowerState power_states[2];
     PowerState *power_state = &power_states[0], *next_power_state = &power_states[1];
     next_power_state->num_states = 0;
     next_power_state->AddState(start);
 
-    // construct power states and transitions based on input
+    // Construct power states and transitions based on input
     for (size_t i = 0; i < input_size; i++) {
 
         swap(power_state, next_power_state);
@@ -126,15 +126,15 @@ bool Automaton<T,N,M>::Accept(const Input<I> &input, Input<I> &output, size_t in
             for (size_t v = 0; v < N; v++) {
                 Transition &transition = state->transitions[v];
 
-                // skip invalid transition
+                // Skip invalid transition
                 if (transition.to == NULL)
                     continue;
 
-                // skip mismatched input
+                // Skip mismatched input
                 if (input.IsDecided(i) && transition.value != input.GetValue(i))
                     continue;
 
-                // reject state that's too far from accepting
+                // Reject state that's too far from accepting
                 size_t num_inputs_left = input_size - 1 - i;
                 if (transition.to->dist_to_acc > num_inputs_left) 
                     continue;
@@ -148,10 +148,10 @@ bool Automaton<T,N,M>::Accept(const Input<I> &input, Input<I> &output, size_t in
             return false;
     }
 
-    // prune deadends backwards
+    // Prune deadends backwards
     for (size_t i = input_size; i > 0; i--) {
 
-        // gather valid states and inputs
+        // Gather valid states and inputs
         PowerInput  power_input;
         power_input.num_inputs = 0;
         power_state->member_states.Clear();
@@ -160,7 +160,7 @@ bool Automaton<T,N,M>::Accept(const Input<I> &input, Input<I> &output, size_t in
             if (next_power_state->member_states.Has(transition.to->id)) {
                 power_state->member_states.Add(transition.from->id);
 
-                // only care about whether there is a single input
+                // Only care about whether there is a single input
                 if (power_input.num_inputs <= 1)
                     power_input.AddInput(transition.value);
             }
