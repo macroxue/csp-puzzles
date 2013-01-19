@@ -36,6 +36,9 @@ class Problem
         virtual void ShowSolution();
         virtual long GetSolutionCost();
 
+        bool CheckSolution(size_t v);
+        void ProcessSolution();
+
         void IncrementCounter(size_t index, size_t inc = 1);
         virtual void ShowCounters();
 
@@ -174,6 +177,11 @@ bool Problem<T>::EnforceArcConsistency(size_t v)
                 variable->Decide(value);
                 bool consistent = variable->PropagateDecision(NULL);
                 consistent = EnforceActiveConstraints(consistent);
+                if (consistent) {
+                    // Take shortcut if a solution is already found
+                    if (CheckSolution(v))
+                        consistent = false;
+                }
 
                 RestoreCheckpoint();
 
@@ -222,25 +230,25 @@ void Problem<T>::Solve()
     if (!EnforceActiveConstraints(true)) 
         return;
 
-    if (option.arc_consistency) {
-        // Mark variables active
-        for (size_t i = 0; i < variables.size(); i++)
-            variables[i]->active = true;
-
-        bool consistent = EnforceArcConsistency(0);
-        if (!consistent)
-            return;
-    }
-
-    storage.clear();
-
-    for (size_t i = 0; i < constraints.size(); i++)
-        constraints[i]->UpdateBounds();
-
-    Sort(0);
-    DEBUG( ShowState(NULL) );
-
     try {
+        if (option.arc_consistency) {
+            // Mark variables active
+            for (size_t i = 0; i < variables.size(); i++)
+                variables[i]->active = true;
+
+            bool consistent = EnforceArcConsistency(0);
+            if (!consistent)
+                throw false;
+        }
+
+        storage.clear();
+
+        for (size_t i = 0; i < constraints.size(); i++)
+            constraints[i]->UpdateBounds();
+
+        Sort(0);
+        DEBUG( ShowState(NULL) );
+
         Search(0);
     } catch (bool result) {
         ;
@@ -259,23 +267,7 @@ void Problem<T>::Search(size_t v)
         v++;
     }
     if (v == variables.size()) {
-        num_solutions++;
-        if (option.optimize) {
-            long cost =  GetSolutionCost();
-            if (min_cost > cost) {
-                min_cost = cost;
-                printf("----- Solution %ld after %ld searches, %ld deadends and %.3fs -----\n",
-                        num_solutions, search_count, deadend_count, GetTimeUsage());
-                ShowSolution();
-            }
-        } else {
-            printf("----- Solution %ld after %ld searches, %ld deadends and %.3fs -----\n",
-                    num_solutions, search_count, deadend_count, GetTimeUsage());
-            ShowSolution();
-            if (option.num_solutions > 0 && num_solutions >= option.num_solutions) {
-                throw true;
-            }
-        }
+        ProcessSolution();
         return;
     }
 
@@ -405,6 +397,38 @@ template <class T>
 long Problem<T>::GetSolutionCost()
 {
     return LONG_MAX;
+}
+
+template <class T>
+bool Problem<T>::CheckSolution(size_t v)
+{
+    for (size_t i = v; i < variables.size(); i++)
+        if (variables[i]->GetDomainSize() > 1)
+            return false;
+    ProcessSolution();
+    return true;
+}
+
+template <class T>
+void Problem<T>::ProcessSolution()
+{
+    num_solutions++;
+    if (option.optimize) {
+        long cost =  GetSolutionCost();
+        if (min_cost > cost) {
+            min_cost = cost;
+            printf("----- Solution %ld after %ld searches, %ld deadends and %.3fs -----\n",
+                    num_solutions, search_count, deadend_count, GetTimeUsage());
+            ShowSolution();
+        }
+    } else {
+        printf("----- Solution %ld after %ld searches, %ld deadends and %.3fs -----\n",
+                num_solutions, search_count, deadend_count, GetTimeUsage());
+        ShowSolution();
+        if (option.num_solutions > 0 && num_solutions >= option.num_solutions) {
+            throw true;
+        }
+    }
 }
 
 template <class T>
