@@ -87,8 +87,11 @@ class Domain
 template <class T>
 Domain<T>::Domain(T low, T high)
 {
-    for (T v = low; v <= high; v++)
+    for (T v = low; ; v++) {
         values.push_back(v);
+        if (v == high)
+            break;
+    }
     count = values.size();
 }
 

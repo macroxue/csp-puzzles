@@ -27,10 +27,9 @@ Fiver::Fiver(Option option, int size)
     : Problem<bool>(option), size(size)
 {
     // Variables
-    bool domain[2] = { false, true };
     for (int y = 0; y < size; y++)
         for (int x = 0; x < size; x++)
-            v[x][y] = new Variable<bool>(domain, 2);
+            v[x][y] = new Variable<bool>(false, true);
 
     // Constraints with neighbors
     for (int y = 0; y < size; y++) {

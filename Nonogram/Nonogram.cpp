@@ -73,12 +73,11 @@ Nonogram::Nonogram(Option option, bool rotate)
     }
 
     // Create variables
-    bool domain[2] = { false, true };
     grid.resize(columns);
     for (int x = 0; x < columns; x++) {
         grid[x].reserve(rows);
         for (int y = 0; y < rows; y++)
-            new (&grid[x][y]) Variable<bool>(domain, 2);
+            new (&grid[x][y]) Variable<bool>(false, true);
     }
 
     // Create row constraints
