@@ -193,6 +193,7 @@ bool Problem<T>::EnforceArcConsistency(size_t v)
                     DEBUG( printf("Variable %ld = %d is inconsistent\n",
                                 variable->GetId(), value) );
                     DEBUG( ShowState(variable) );
+                    variable->failures++;
                     variable->Exclude(value);
                     j--;
                 }
