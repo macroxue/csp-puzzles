@@ -201,6 +201,11 @@ bool Problem<T>::EnforceArcConsistency(size_t v)
             size_t new_domain_size = variable->GetDomainSize();
             if (new_domain_size == 0)
                 return false;
+            if (new_domain_size == 1) {
+                bool consistent = variable->PropagateDecision(NULL);
+                consistent = EnforceActiveConstraints(consistent);
+                assert(consistent);
+            }
             if (new_domain_size < old_domain_size) {
                 variable->ActivateAffectedVariables();
                 domain_reduced = true;
