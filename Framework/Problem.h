@@ -13,7 +13,7 @@ using namespace std;
 #include <sys/time.h>
 #include <sys/resource.h>
 
-#define DEBUG( statement )  if (option.debug) statement
+#define DEBUG( statement )  //if (option.debug) statement
 
 //
 // A problem has a set of variables and a set of constraints.
@@ -178,6 +178,10 @@ bool Problem<T>::EnforceArcConsistency(size_t v)
                 bool consistent = variable->PropagateDecision(NULL);
                 consistent = EnforceActiveConstraints(consistent);
                 if (consistent) {
+                    DEBUG( printf("Variable %ld = %d is consistent\n",
+                                variable->GetId(), value) );
+                    DEBUG( ShowState(variable) );
+
                     // Take shortcut if a solution is already found
                     if (CheckSolution(v))
                         consistent = false;
@@ -186,6 +190,9 @@ bool Problem<T>::EnforceArcConsistency(size_t v)
                 RestoreCheckpoint();
 
                 if (!consistent) {
+                    DEBUG( printf("Variable %ld = %d is inconsistent\n",
+                                variable->GetId(), value) );
+                    DEBUG( ShowState(variable) );
                     variable->Exclude(value);
                     j--;
                 }
