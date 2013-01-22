@@ -45,6 +45,7 @@ class Problem
     private:
         void AddVariable(Variable<T> *variable);
         bool EnforceActiveConstraints(bool consistent);
+        void Revise(Variable<T> *variable, size_t v);
         bool EnforceArcConsistency(size_t v);
         void Search(size_t v);
         void Sort(size_t v);
@@ -150,6 +151,41 @@ bool Problem<T>::EnforceActiveConstraints(bool consistent)
 }
 
 template <class T>
+void Problem<T>::Revise(Variable<T> *variable, size_t v)
+{
+    size_t domain_size = variable->GetDomainSize();
+    for (size_t j = 0; j < domain_size; j++) {
+        StartCheckpoint();
+
+        T value = variable->GetValue(j);
+        variable->Decide(value);
+        bool consistent = variable->PropagateDecision(NULL);
+        consistent = EnforceActiveConstraints(consistent);
+        if (consistent) {
+            DEBUG( printf("Variable %ld = %d is consistent\n",
+                        variable->GetId(), value) );
+            DEBUG( ShowState(variable) );
+
+            // Take shortcut if a solution is already found
+            if (CheckSolution(v))
+                consistent = false;
+        }
+
+        RestoreCheckpoint();
+
+        if (!consistent) {
+            DEBUG( printf("Variable %ld = %d is inconsistent\n",
+                        variable->GetId(), value) );
+            DEBUG( ShowState(variable) );
+            variable->failures++;
+            variable->Exclude(value);
+            domain_size--;
+            j--;
+        }
+    }
+}
+
+template <class T>
 bool Problem<T>::EnforceArcConsistency(size_t v)
 {
     bool domain_reduced;
@@ -165,35 +201,7 @@ bool Problem<T>::EnforceArcConsistency(size_t v)
                 continue;
 
             size_t old_domain_size = variable->GetDomainSize();
-            for (size_t j = 0; j < variable->GetDomainSize(); j++) {
-                StartCheckpoint();
-
-                T value = variable->GetValue(j);
-                variable->Decide(value);
-                bool consistent = variable->PropagateDecision(NULL);
-                consistent = EnforceActiveConstraints(consistent);
-                if (consistent) {
-                    DEBUG( printf("Variable %ld = %d is consistent\n",
-                                variable->GetId(), value) );
-                    DEBUG( ShowState(variable) );
-
-                    // Take shortcut if a solution is already found
-                    if (CheckSolution(v))
-                        consistent = false;
-                }
-
-                RestoreCheckpoint();
-
-                if (!consistent) {
-                    DEBUG( printf("Variable %ld = %d is inconsistent\n",
-                                variable->GetId(), value) );
-                    DEBUG( ShowState(variable) );
-                    variable->failures++;
-                    variable->Exclude(value);
-                    j--;
-                }
-            }
-
+            Revise(variable, v);
             size_t new_domain_size = variable->GetDomainSize();
             if (new_domain_size == 0)
                 return false;
