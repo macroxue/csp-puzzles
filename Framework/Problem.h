@@ -155,17 +155,12 @@ bool Problem<T>::EnforceArcConsistency(size_t v)
     bool domain_reduced;
     do {
         domain_reduced = false;
-        for (size_t i = v; i < variables.size(); i++) {
-            Variable<T> *variable = variables[i];
-            if (variable->GetDomainSize() == 1) {
-                swap(variables[i], variables[v]);
-                v++;
-            }
-        }
 
+        Sort(v);
         for (size_t i = v; i < variables.size(); i++) {
-            Sort(i);
             Variable<T> *variable = variables[i];
+            if (variable->GetDomainSize() == 1)
+                variable->active = false;
             if (variable->active == false)
                 continue;
 
@@ -212,6 +207,7 @@ bool Problem<T>::EnforceArcConsistency(size_t v)
                 domain_reduced = true;
             }
             variable->active = false;
+            Sort(i+1);
         }
     } while (domain_reduced);
     return true;
