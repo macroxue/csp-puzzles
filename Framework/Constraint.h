@@ -30,7 +30,7 @@ class Constraint : public QueueObject
         // Enforce the constraint.
         // The domains can be reduced to meet the constraint.
         // False is returned if the constraint cannot be met.
-        virtual bool OnDecided(Variable<T> *decided) { return true; }
+        virtual bool OnDecided(Variable<T> *decided);
         virtual bool OnReduced(Variable<T> *reduced) { return true; }
         virtual bool Enforce() { return true; }
 
@@ -100,6 +100,13 @@ void Constraint<T>::GetBounds(T &low, T &high) const
 {
     low  = low_value;
     high = high_value;
+}
+
+template <class T>
+bool Constraint<T>::OnDecided(Variable<T> *decided)
+{
+    problem->ActivateConstraint(this);
+    return true;
 }
 
 template <class T>

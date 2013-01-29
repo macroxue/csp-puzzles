@@ -12,7 +12,6 @@ class RunLength : public Constraint<bool>
 {
     public:
         RunLength(vector<int> & length);
-        bool OnDecided(Variable<bool> *decided);
         bool Enforce();
 
     private:
@@ -69,12 +68,6 @@ RunLength<M,B>::RunLength(vector<int> & length)
 }
 
 template <size_t M, size_t B>
-bool RunLength<M,B>::OnDecided(Variable<bool> *decided)
-{
-    return Enforce();
-}
-
-template <size_t M, size_t B>
 bool RunLength<M,B>::Enforce()
 {
     vector<Variable<bool> *>  &variables = Constraint<bool>::variables;
@@ -102,12 +95,7 @@ bool RunLength<M,B>::Enforce()
     for (size_t i = 0; i < num_undecided; i++) {
         if (out.IsDecided(undecided_indexes[i])) {
             undecided_variables[i]->Decide(out.GetValue(undecided_indexes[i]));
-
-            vector<Constraint<bool>*> &constraints = undecided_variables[i]->GetConstraints();
-            for (size_t j = 0; j < constraints.size(); j++) {
-                if (constraints[j] != this)
-                    problem->ActivateConstraint(constraints[j]);
-            }
+            undecided_variables[i]->PropagateDecision(this);
         }
     }
 

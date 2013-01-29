@@ -39,7 +39,6 @@ class Variable
         size_t GetDomainSize() const;
         const Domain<T> & GetDomain() const;
         void  ShowDomain() const;
-        vector<Constraint<T> *> & GetConstraints();
 
         typedef vector< pair<Variable<T> *, size_t> > Storage;
         void SetStorage(Storage *storage);
@@ -218,12 +217,6 @@ void Variable<T>::ShowDomain() const
     for (size_t i = 0; i < GetDomainSize(); i++)
         printf("%d ", GetValue(i));
     printf("}\n");
-}
-
-template <class T>
-vector<Constraint<T> *> & Variable<T>::GetConstraints()
-{
-    return constraints;
 }
 
 template <class T>
