@@ -105,9 +105,9 @@ bool RunLength<M,B>::Enforce()
 template <size_t M, size_t B>
 bool RunLength<M,B>::Accept(const Line &in, Line &out, size_t num_variables)
 {
-    GetProblem()->IncrementCounter(0);
+    problem->IncrementCounter(0);
     if (cache.Lookup(in, out)) {
-        GetProblem()->IncrementCounter(1);
+        problem->IncrementCounter(1);
         return out.IsDecided(M); // accept flag is the last bit
     }
 

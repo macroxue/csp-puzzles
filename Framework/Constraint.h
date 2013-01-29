@@ -34,8 +34,6 @@ class Constraint : public QueueObject
         virtual bool OnReduced(Variable<T> *reduced) { return true; }
         virtual bool Enforce() { return true; }
 
-        Problem<T> *GetProblem() const { return problem; }
-
         void ActivateVariables();
 
     protected:
