@@ -24,6 +24,7 @@ class Constraint : public QueueObject
         void AddVariable(Variable<T> *variable);
         void AddVariable(size_t num_variables, ...);
 
+        void SetProblem(Problem<T> *the_problem);
         void UpdateBounds();
         void GetBounds(T &low, T &high) const;
 
@@ -38,11 +39,9 @@ class Constraint : public QueueObject
 
     protected:
         vector<Variable<T> *>  variables;
-
-        T    low_value, high_value;
-
-        friend class Problem<T>;
-        Problem<T>  *problem;
+        Problem<T> *           problem;
+        T                      low_value;
+        T                      high_value;
 };
 
 #include "Variable.h"
@@ -73,6 +72,16 @@ void Constraint<T>::AddVariable(size_t num_variables, ...)
     }
 
     va_end(ap);
+}
+
+template <class T>
+void Constraint<T>::SetProblem(Problem<T> *the_problem)
+{
+    problem = the_problem;
+    for (size_t i = 0; i < variables.size(); i++) {
+        Variable<T> *variable = variables[i];
+        problem->AddVariable(variable);
+    }
 }
 
 template <class T>

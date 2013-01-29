@@ -5,8 +5,6 @@
 #include "Constraint.h"
 #include "Queue.h"
 
-#include <algorithm>
-#include <typeinfo>
 #include <vector>
 using namespace std;
 
@@ -31,6 +29,7 @@ class Problem
         void AddConstraint(size_t num_variables, ...);
         void AddConstraint(Constraint<T> *constraint);
         void ActivateConstraint(Constraint<T> *constraint);
+        void AddVariable(Variable<T> *variable);
         void Solve();
         virtual void ShowState(Variable<T> *current);
         virtual void ShowSolution();
@@ -43,7 +42,6 @@ class Problem
         virtual void ShowCounters();
 
     private:
-        void AddVariable(Variable<T> *variable);
         bool EnforceActiveConstraints(bool consistent);
         bool PropagateDecision(Variable<T> *variable);
         void Revise(Variable<T> *variable, size_t v);
@@ -116,13 +114,7 @@ template <class T>
 void Problem<T>::AddConstraint(Constraint<T> *constraint)
 {
     constraints.push_back(constraint);
-    for (size_t i = 0; i < constraint->variables.size(); i++) {
-        Variable<T> *variable = constraint->variables[i];
-        if (find(variables.begin(), variables.end(), variable) == variables.end())
-            AddVariable(variable);
-    }
-
-    constraint->problem = this;
+    constraint->SetProblem(this);
 }
 
 template <class T>
@@ -135,6 +127,9 @@ void Problem<T>::ActivateConstraint(Constraint<T> *constraint)
 template <class T>
 void Problem<T>::AddVariable(Variable<T> *variable)
 {
+    if (variable->active)
+        return;
+    variable->active = true;
     variable->SetId(variables.size());
     variables.push_back(variable);
     variable->SetStorage(&storage);
@@ -255,10 +250,6 @@ void Problem<T>::Solve()
 
     try {
         if (option.arc_consistency) {
-            // Mark variables active
-            for (size_t i = 0; i < variables.size(); i++)
-                variables[i]->active = true;
-
             bool consistent = EnforceArcConsistency(0);
             if (!consistent)
                 throw false;
