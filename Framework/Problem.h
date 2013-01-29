@@ -45,6 +45,7 @@ class Problem
     private:
         void AddVariable(Variable<T> *variable);
         bool EnforceActiveConstraints(bool consistent);
+        bool PropagateDecision(Variable<T> *variable);
         void Revise(Variable<T> *variable, size_t v);
         bool EnforceArcConsistency(size_t v);
         void Search(size_t v);
@@ -151,6 +152,13 @@ bool Problem<T>::EnforceActiveConstraints(bool consistent)
 }
 
 template <class T>
+bool Problem<T>::PropagateDecision(Variable<T> *variable)
+{
+    bool consistent = variable->PropagateDecision(NULL);
+    return EnforceActiveConstraints(consistent);
+}
+
+template <class T>
 void Problem<T>::Revise(Variable<T> *variable, size_t v)
 {
     size_t domain_size = variable->GetDomainSize();
@@ -159,8 +167,7 @@ void Problem<T>::Revise(Variable<T> *variable, size_t v)
 
         T value = variable->GetValue(j);
         variable->Decide(value);
-        bool consistent = variable->PropagateDecision(NULL);
-        consistent = EnforceActiveConstraints(consistent);
+        bool consistent = PropagateDecision(variable);
         if (consistent) {
             DEBUG( printf("Variable %ld = %d is consistent\n",
                         variable->GetId(), value) );
@@ -206,8 +213,7 @@ bool Problem<T>::EnforceArcConsistency(size_t v)
             if (new_domain_size == 0)
                 return false;
             if (new_domain_size == 1) {
-                bool consistent = variable->PropagateDecision(NULL);
-                consistent = EnforceActiveConstraints(consistent);
+                bool consistent = PropagateDecision(variable);
                 assert(consistent);
             }
             if (new_domain_size < old_domain_size) {
@@ -297,8 +303,7 @@ void Problem<T>::Search(size_t v)
         T value = variable->GetValue(0);
 
         variable->Decide(value);
-        bool consistent = variable->PropagateDecision(NULL);
-        consistent = EnforceActiveConstraints(consistent);
+        bool consistent = PropagateDecision(variable);
         if (consistent && option.arc_consistency) {
             variable->ActivateAffectedVariables();
             consistent = EnforceArcConsistency(v+1);
