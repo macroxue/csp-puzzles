@@ -26,7 +26,7 @@ bool OneToOne<T>::OnReduced(Variable<T> *reduced)
     // Some value is in one and only one variable's domain.
     // TODO: more efficient tracking of undecided values
     T  low, high;
-    GetBounds(low, high);
+    this->GetBounds(low, high);
     Variable<T> * value_map[high - low + 1];
     for (T  value = low; value <= high; value++)
         value_map[value - low] = NULL;
@@ -48,7 +48,7 @@ bool OneToOne<T>::OnReduced(Variable<T> *reduced)
 
     for (T value = low; value <= high; value++) {
         Variable<T> * variable = value_map[value - low];
-        if (variable == NULL || variable == MULTIPLE 
+        if (variable == NULL || variable == MULTIPLE
                 || variable->GetDomainSize() == 1)
             continue;
 

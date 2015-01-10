@@ -13,6 +13,7 @@ class Nonogram : public Problem<bool>
 {
     public:
         Nonogram(Option option, bool rootate);
+        void ReadLine(char line[], size_t length);
         void ShowState(Variable<bool> *);
         void ShowSolution();
         void ShowCounters();
@@ -34,7 +35,7 @@ Nonogram::Nonogram(Option option, bool rotate)
 {
     // Read input
     char line[128];
-    fgets(line, sizeof(line), stdin);
+    ReadLine(line, sizeof(line));
     if (!rotate)
         sscanf(line, "%d %d", &rows, &columns);
     else
@@ -47,7 +48,7 @@ Nonogram::Nonogram(Option option, bool rotate)
     for (int i = 0; i < columns; i++)
         column_runs[i].reserve((rows+1)/2);
     for (int i = 0; i < rows + columns; i++) {
-        do fgets(line, sizeof(line), stdin);
+        do ReadLine(line, sizeof(line));
         while (line[0] == '#');
         int n[64], count = 0;
         char *ptr = line;
@@ -84,7 +85,7 @@ Nonogram::Nonogram(Option option, bool rotate)
     for (int y = 0; y < rows; y++) {
         if (columns < 31)
             CreateRowConstraint<31,9>(y);
-        else if (columns < 63) 
+        else if (columns < 63)
             CreateRowConstraint<63,10>(y);
         else if (columns < 95)
             CreateRowConstraint<95,11>(y);
@@ -117,6 +118,13 @@ Nonogram::Nonogram(Option option, bool rotate)
     // Initialize counters
     counters[0].name = "Cache lookups";
     counters[1].name = "Cache hits";
+}
+
+void Nonogram::ReadLine(char line[], size_t length) {
+    if (!fgets(line, length, stdin)) {
+        printf("Failed to read from stdin");
+        exit(-1);
+    }
 }
 
 void Nonogram::ShowState(Variable<bool> *current)
@@ -161,7 +169,7 @@ template <size_t M, size_t B>
 void Nonogram::CreateRowConstraint(int y)
 {
     RunLength<M,B> *r = new RunLength<M,B>(row_runs[y]);
-    for (int x = 0; x < columns; x++) 
+    for (int x = 0; x < columns; x++)
         r->AddVariable(&grid[x][y]);
     AddConstraint(r);
 }
