@@ -17,7 +17,7 @@ using namespace std;
 // A problem has a set of variables and a set of constraints.
 //
 template <class T>
-class Problem 
+class Problem
 {
     public:
         Problem(Option option);
@@ -68,7 +68,7 @@ class Problem
         struct Counter {
             const char *         name;
             size_t               value;
-            Counter(const char *name = NULL, size_t value = 0) 
+            Counter(const char *name = NULL, size_t value = 0)
                 : name(name), value(value) {}
         };
         Counter                  counters[16];
@@ -245,7 +245,7 @@ void Problem<T>::Solve()
         }
     }
 
-    if (!EnforceActiveConstraints(true)) 
+    if (!EnforceActiveConstraints(true))
         return;
 
     try {
@@ -311,7 +311,7 @@ void Problem<T>::Search(size_t v)
     }
     if (deadend) {
         deadend_count++;
-        variable->failures = deadend_count;
+        //variable->failures = deadend_count;
         DEBUG( printf("%ld: Variable %ld deadend %ld\n", v, variable->GetId(), variable->failures) );
     }
 }
@@ -339,7 +339,7 @@ void Problem<T>::Sort(size_t v)
                         min_index = i;
                     }
                 }
-                if (min_index != variables.size()) 
+                if (min_index != variables.size())
                     swap(variables[v], variables[min_index]);
                 break;
             }
@@ -358,7 +358,7 @@ void Problem<T>::Sort(size_t v)
                         max_index = i;
                     }
                 }
-                if (max_index != variables.size()) 
+                if (max_index != variables.size())
                     swap(variables[v], variables[max_index]);
                 break;
             }
@@ -391,7 +391,7 @@ void Problem<T>::ShowState(Variable<T> *current)
 {
     for (size_t i = 0; i < variables.size(); i++) {
         printf("[ ");
-        for (size_t v = 0; v < variables[i]->GetDomainSize(); v++) 
+        for (size_t v = 0; v < variables[i]->GetDomainSize(); v++)
             printf("%d ", variables[i]->GetValue(v));
         printf("]");
         putchar(variables[i] == current ? '*' : ' ');
