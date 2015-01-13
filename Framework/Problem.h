@@ -190,6 +190,10 @@ void Problem<T>::Revise(Variable<T> *variable, size_t v)
 template <class T>
 bool Problem<T>::EnforceArcConsistency(size_t v)
 {
+    for (size_t i = v; i < variables.size(); i++) {
+        Variable<T> *variable = variables[i];
+        variable->failures *= option.decay;
+    }
     bool domain_reduced;
     do {
         domain_reduced = false;
@@ -313,6 +317,7 @@ void Problem<T>::Search(size_t v)
         deadend_count++;
         //variable->failures = deadend_count;
         DEBUG( printf("%ld: Variable %ld deadend %ld\n", v, variable->GetId(), variable->failures) );
+        //ShowState(variable);
     }
 }
 

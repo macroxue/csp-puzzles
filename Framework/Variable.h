@@ -53,7 +53,7 @@ class Variable
         size_t                   id;
 
     public:
-        size_t                   failures;
+        float                    failures;
         bool                     active;
 };
 
