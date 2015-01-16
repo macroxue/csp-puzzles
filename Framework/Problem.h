@@ -46,7 +46,7 @@ class Problem
         bool PropagateDecision(Variable<T> *variable);
         void Revise(Variable<T> *variable, size_t v);
         bool EnforceArcConsistency(size_t v);
-        void Search(size_t v);
+        bool Search(size_t v);
         void Sort(size_t v);
         void StartCheckpoint();
         void RestoreCheckpoint();
@@ -267,7 +267,13 @@ void Problem<T>::Solve()
         Sort(0);
         DEBUG( ShowState(NULL) );
 
-        Search(0);
+        while (!Search(0)) {
+            deadend_count = 0;
+            storage.clear();
+            Sort(0);
+            printf("Restart search\n");
+            ShowState(NULL);
+        }
     } catch (bool result) {
         ;
     }
@@ -275,7 +281,7 @@ void Problem<T>::Solve()
 }
 
 template <class T>
-void Problem<T>::Search(size_t v)
+bool Problem<T>::Search(size_t v)
 {
     search_count++;
 
@@ -286,7 +292,7 @@ void Problem<T>::Search(size_t v)
     }
     if (v == variables.size()) {
         ProcessSolution();
-        return;
+        return true;
     }
 
     Variable<T> *variable = variables[v];
@@ -308,17 +314,24 @@ void Problem<T>::Search(size_t v)
             deadend = false;
             Sort(v + 1);
             DEBUG( ShowState(variable) );
-            Search(v + 1);
+            if (!Search(v + 1)) {
+                RestoreCheckpoint();
+                return false;
+            }
         }
         RestoreCheckpoint();
         variable->Exclude(value);
     }
     if (deadend) {
         deadend_count++;
-        //variable->failures = deadend_count;
         DEBUG( printf("%ld: Variable %ld deadend %ld\n", v, variable->GetId(), variable->failures) );
         //ShowState(variable);
+        if (deadend_count >= option.restart) {
+            option.restart = option.restart * 1.618;
+            return false;
+        }
     }
+    return true;
 }
 
 template <class T>
