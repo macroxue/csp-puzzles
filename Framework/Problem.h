@@ -167,10 +167,6 @@ void Problem<T>::Revise(Variable<T> *variable, size_t v)
             DEBUG( printf("Variable %ld = %d is consistent\n",
                         variable->GetId(), value) );
             DEBUG( ShowState(variable) );
-
-            // Take shortcut if a solution is already found
-            if (CheckSolution(v))
-                consistent = false;
         }
 
         RestoreCheckpoint();
