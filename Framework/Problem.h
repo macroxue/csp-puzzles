@@ -375,7 +375,8 @@ void Problem<T>::Sort(size_t v)
             }
         case Option::SORT_FAILURES:
             {
-                size_t max_failures = 0, max_index = variables.size();
+                float max_failures = 0;
+                size_t max_index = variables.size();
                 for (size_t i = v; i < variables.size(); i++) {
                     size_t domain_size = variables[i]->GetDomainSize();
                     if (domain_size == 1) {
