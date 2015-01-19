@@ -5,6 +5,7 @@
 #include "Constraint.h"
 #include "Queue.h"
 
+#include <algorithm>
 #include <vector>
 using namespace std;
 
@@ -42,6 +43,7 @@ class Problem
         virtual void ShowCounters();
 
     private:
+        void OrderValues(Variable<T> *variable, T values[]) const;
         bool EnforceActiveConstraints(bool consistent);
         bool PropagateDecision(Variable<T> *variable);
         void Revise(Variable<T> *variable, size_t v);
@@ -74,6 +76,12 @@ class Problem
         Counter                  counters[16];
 
         long                     min_cost;
+
+        struct CompareValues {
+            bool operator()(const T& v1, const T& v2) {
+                return v1 > v2;
+            }
+        };
 };
 
 #include <sys/time.h>
@@ -136,6 +144,15 @@ void Problem<T>::AddVariable(Variable<T> *variable)
 }
 
 template <class T>
+void Problem<T>::OrderValues(Variable<T> *variable, T values[]) const
+{
+    size_t domain_size = variable->GetDomainSize();
+    for (size_t i = 0; i < domain_size; i++)
+        values[i] = variable->GetValue(i);
+    sort(values, values + domain_size, CompareValues());
+}
+
+template <class T>
 bool Problem<T>::EnforceActiveConstraints(bool consistent)
 {
     while (!active_constraints.IsEmpty()) {
@@ -157,15 +174,16 @@ template <class T>
 void Problem<T>::Revise(Variable<T> *variable, size_t v)
 {
     size_t domain_size = variable->GetDomainSize();
-    for (size_t j = 0; j < domain_size; j++) {
+    T values[domain_size];
+    OrderValues(variable, values);
+    for (size_t i = 0; i < domain_size; i++) {
         StartCheckpoint();
 
-        T value = variable->GetValue(j);
-        variable->Decide(value);
+        variable->Decide(values[i]);
         bool consistent = PropagateDecision(variable);
         if (consistent) {
             DEBUG( printf("Variable %ld = %d is consistent\n",
-                        variable->GetId(), value) );
+                        variable->GetId(), values[i]) );
             DEBUG( ShowState(variable) );
         }
 
@@ -173,12 +191,10 @@ void Problem<T>::Revise(Variable<T> *variable, size_t v)
 
         if (!consistent) {
             DEBUG( printf("Variable %ld = %d is inconsistent\n",
-                        variable->GetId(), value) );
+                        variable->GetId(), values[i]) );
             DEBUG( ShowState(variable) );
             variable->failures++;
-            variable->Exclude(value);
-            domain_size--;
-            j--;
+            variable->Exclude(values[i]);
         }
     }
 }
@@ -294,18 +310,19 @@ bool Problem<T>::Search(size_t v)
     Variable<T> *variable = variables[v];
     DEBUG( variable->ShowDomain() );
 
+    size_t domain_size = variable->GetDomainSize();
+    T values[domain_size];
+    OrderValues(variable, values);
     bool deadend = true;
-    while (variable->GetDomainSize() > 0) {
+    for (int i = 0; i < domain_size; ++i) {
         StartCheckpoint();
-        T value = variable->GetValue(0);
-
-        variable->Decide(value);
+        variable->Decide(values[i]);
         bool consistent = PropagateDecision(variable);
         if (consistent && option.arc_consistency) {
             variable->ActivateAffectedVariables();
             consistent = EnforceArcConsistency(v+1);
         }
-        DEBUG( printf("%ld: Variable %ld = %d, %d\n", v, variable->GetId(), value, consistent) );
+        DEBUG( printf("%ld: Variable %ld = %d, %d\n", v, variable->GetId(), values[i], consistent) );
         if (consistent) {
             deadend = false;
             Sort(v + 1);
@@ -316,7 +333,6 @@ bool Problem<T>::Search(size_t v)
             }
         }
         RestoreCheckpoint();
-        variable->Exclude(value);
     }
     if (deadend) {
         deadend_count++;
