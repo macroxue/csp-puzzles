@@ -185,6 +185,10 @@ void Problem<T>::Revise(Variable<T> *variable, size_t v)
             DEBUG( printf("Variable %ld = %d is consistent\n",
                         variable->GetId(), values[i]) );
             DEBUG( ShowState(variable) );
+            size_t num_decided = 0;
+            for (int j = v; j < variables.size(); ++j)
+                num_decided += (variables[j]->GetDomainSize() == 1);
+            variable->failures += num_decided / float(variables.size());
         }
 
         RestoreCheckpoint();
