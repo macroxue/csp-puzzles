@@ -9,12 +9,12 @@ using namespace std;
 
 __uint128_t hash_rand[2][2];
 
-class Nonogram : public Problem<bool>
+class Nonogram : public Problem<char>
 {
     public:
         Nonogram(Option option, bool rootate);
         void ReadLine(char line[], size_t length);
-        void ShowState(Variable<bool> *);
+        void ShowState(Variable<char> *);
         void ShowSolution();
         void ShowCounters();
 
@@ -25,13 +25,13 @@ class Nonogram : public Problem<bool>
             void CreateColumnConstraint(int x);
 
         int  columns, rows;
-        vector< vector<Variable<bool> > >  grid;
+        vector< vector<Variable<char> > >  grid;
         vector< vector<int> >  column_runs;
         vector< vector<int> >  row_runs;
 };
 
 Nonogram::Nonogram(Option option, bool rotate)
-    : Problem<bool>(option)
+    : Problem<char>(option)
 {
     // Read input
     char line[128];
@@ -78,7 +78,7 @@ Nonogram::Nonogram(Option option, bool rotate)
     for (int x = 0; x < columns; x++) {
         grid[x].reserve(rows);
         for (int y = 0; y < rows; y++)
-            new (&grid[x][y]) Variable<bool>(false, true);
+            new (&grid[x][y]) Variable<char>(char(0), char(1));
     }
 
     // Create row constraints
@@ -127,13 +127,13 @@ void Nonogram::ReadLine(char line[], size_t length) {
     }
 }
 
-void Nonogram::ShowState(Variable<bool> *current)
+void Nonogram::ShowState(Variable<char> *current)
 {
     char line[columns * 2 + 1];
     for (int y = 0; y < rows; y++) {
         for (int x = 0; x < columns; x++) {
             if (grid[x][y].GetDomainSize() == 1) {
-                bool value = grid[x][y].GetValue(0);
+                char value = grid[x][y].GetValue(0);
                 line[x * 2] = (value ? 'O' : '.');
             } else {
                 line[x * 2] = ' ';
@@ -150,7 +150,7 @@ void Nonogram::ShowSolution()
     char line[columns * 2 + 1];
     for (int y = 0; y < rows; y++) {
         for (int x = 0; x < columns; x++) {
-            bool value = grid[x][y].GetValue(0);
+            char value = grid[x][y].GetValue(0);
             line[x * 2] = (value ? 'O' : '.');
             line[x * 2 + 1] = ' ';
         }
@@ -161,7 +161,7 @@ void Nonogram::ShowSolution()
 
 void Nonogram::ShowCounters()
 {
-    Problem<bool>::ShowCounters();
+    Problem<char>::ShowCounters();
     printf("Hit ratio: %.1f%%\n", 100.0*counters[1].value/counters[0].value);
 }
 

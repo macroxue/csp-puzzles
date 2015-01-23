@@ -5,10 +5,10 @@
 #include "Automaton.h"
 
 //
-// RunLength: 
+// RunLength:
 //
 template <size_t M, size_t B>
-class RunLength : public Constraint<bool>
+class RunLength : public Constraint<char>
 {
     public:
         RunLength(vector<int> & length);
@@ -70,10 +70,10 @@ RunLength<M,B>::RunLength(vector<int> & length)
 template <size_t M, size_t B>
 bool RunLength<M,B>::Enforce()
 {
-    vector<Variable<bool> *>  &variables = Constraint<bool>::variables;
+    vector<Variable<char> *>  &variables = Constraint<char>::variables;
     size_t num_variables = variables.size();
 
-    Variable<bool> *  undecided_variables[num_variables];
+    Variable<char> *  undecided_variables[num_variables];
     size_t            undecided_indexes[num_variables];
     size_t            num_undecided = 0;
     Line              in, out;
@@ -128,7 +128,7 @@ bool RunLength<M,B>::Line::operator ==(const Line &line) const
 {
     return value == line.value && decided == line.decided;
 }
-                
+
 template <size_t M, size_t B>
 void RunLength<M,B>::Line::Show() const
 {
