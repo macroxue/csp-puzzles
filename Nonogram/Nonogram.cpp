@@ -19,6 +19,8 @@ class Nonogram : public Problem<char>
         void ShowCounters();
 
     private:
+        void CreateRowConstraints();
+        void CreateColumnConstraints();
         template <size_t M, size_t B>
             void CreateRowConstraint(int y);
         template <size_t M, size_t B>
@@ -36,10 +38,7 @@ Nonogram::Nonogram(Option option, bool rotate)
     // Read input
     char line[128];
     ReadLine(line, sizeof(line));
-    if (!rotate)
-        sscanf(line, "%d %d", &rows, &columns);
-    else
-        sscanf(line, "%d %d", &columns, &rows);
+    sscanf(line, "%d %d", &rows, &columns);
 
     row_runs.resize(rows);
     for (int i = 0; i < rows; i++)
@@ -60,16 +59,10 @@ Nonogram::Nonogram(Option option, bool rotate)
         }
 
         for (int j = 0; j < count; j++) {
-            if (!rotate)
-                if (i < rows)
-                    row_runs[i].push_back(n[j]);
-                else
-                    column_runs[i-rows].push_back(n[j]);
+            if (i < rows)
+                row_runs[i].push_back(n[j]);
             else
-                if (i < columns)
-                    column_runs[i].push_back(n[j]);
-                else
-                    row_runs[i-columns].push_back(n[j]);
+                column_runs[i-rows].push_back(n[j]);
         }
     }
 
@@ -81,28 +74,12 @@ Nonogram::Nonogram(Option option, bool rotate)
             new (&grid[x][y]) Variable<char>(char(0), char(1));
     }
 
-    // Create row constraints
-    for (int y = 0; y < rows; y++) {
-        if (columns < 31)
-            CreateRowConstraint<31,9>(y);
-        else if (columns < 63)
-            CreateRowConstraint<63,10>(y);
-        else if (columns < 95)
-            CreateRowConstraint<95,11>(y);
-        else
-            CreateRowConstraint<127,12>(y);
-    }
-
-    // Create column constraints
-    for (int x = 0; x < columns; x++) {
-        if (rows < 31)
-            CreateColumnConstraint<31,9>(x);
-        else if (rows < 63)
-            CreateColumnConstraint<63,10>(x);
-        else if (rows < 95)
-            CreateColumnConstraint<95,11>(x);
-        else
-            CreateColumnConstraint<127,12>(x);
+    if (!rotate) {
+        CreateRowConstraints();
+        CreateColumnConstraints();
+    } else {
+        CreateColumnConstraints();
+        CreateRowConstraints();
     }
 
     // Initialize hash random numbers
@@ -163,6 +140,34 @@ void Nonogram::ShowCounters()
 {
     Problem<char>::ShowCounters();
     printf("Hit ratio: %.1f%%\n", 100.0*counters[1].value/counters[0].value);
+}
+
+void Nonogram::CreateRowConstraints()
+{
+    for (int y = 0; y < rows; y++) {
+        if (columns < 31)
+            CreateRowConstraint<31,9>(y);
+        else if (columns < 63)
+            CreateRowConstraint<63,10>(y);
+        else if (columns < 95)
+            CreateRowConstraint<95,11>(y);
+        else
+            CreateRowConstraint<127,12>(y);
+    }
+}
+
+void Nonogram::CreateColumnConstraints()
+{
+    for (int x = 0; x < columns; x++) {
+        if (rows < 31)
+            CreateColumnConstraint<31,9>(x);
+        else if (rows < 63)
+            CreateColumnConstraint<63,10>(x);
+        else if (rows < 95)
+            CreateColumnConstraint<95,11>(x);
+        else
+            CreateColumnConstraint<127,12>(x);
+    }
 }
 
 template <size_t M, size_t B>
