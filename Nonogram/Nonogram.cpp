@@ -74,7 +74,7 @@ Nonogram::Nonogram(Option option, bool rotate)
             new (&grid[x][y]) Variable<char>(char(0), char(1));
     }
 
-    if (!rotate) {
+    if (rotate) {
         CreateRowConstraints();
         CreateColumnConstraints();
     } else {
