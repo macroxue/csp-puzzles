@@ -348,6 +348,7 @@ bool Problem<T>::Search(size_t v)
         in_deadend = true;
         deadend_count++;
         DEBUG( printf("%ld: Variable %ld deadend %ld\n", v, variable->GetId(), variable->failures) );
+        variable->failures++;
         //ShowState(variable);
         if (deadend_count >= option.restart) {
             option.restart = option.restart * 1.618;
