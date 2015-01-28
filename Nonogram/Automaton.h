@@ -53,7 +53,7 @@ class Automaton
             Transition        transitions[N];
 
             State(size_t id = 0);
-        }; 
+        };
 
         struct PowerState {
             Set<M>            member_states;
@@ -61,14 +61,6 @@ class Automaton
             State *           states[M];
 
             void AddState(State *state);
-        };
-
-        struct PowerInput {
-            Set<N>            member_inputs;
-            size_t            num_inputs;
-            T                 inputs[N];
-
-            void AddInput(T value);
         };
 
         State *               start;
@@ -135,7 +127,7 @@ bool Automaton<T,N,M>::Accept(const Input<I> &input, Input<I> &output, size_t in
 
                 // Reject state that's too far from accepting
                 size_t num_inputs_left = input_size - 1 - i;
-                if (transition.to->dist_to_acc > num_inputs_left) 
+                if (transition.to->dist_to_acc > num_inputs_left)
                     continue;
 
                 power_transition[i].push_back(&transition);
@@ -151,22 +143,25 @@ bool Automaton<T,N,M>::Accept(const Input<I> &input, Input<I> &output, size_t in
     for (size_t i = input_size; i > 0; i--) {
 
         // Gather valid states and inputs
-        PowerInput  power_input;
-        power_input.num_inputs = 0;
+        Set<N> power_input;
         power_state->member_states.Clear();
         for (size_t t = 0; t < power_transition[i-1].size(); t++) {
             Transition &transition = *power_transition[i-1][t];
             if (next_power_state->member_states.Has(transition.to->id)) {
                 power_state->member_states.Add(transition.from->id);
-
-                // Only care about whether there is a single input
-                if (power_input.num_inputs <= 1)
-                    power_input.AddInput(transition.value);
+                power_input.Add(transition.value);
             }
         }
 
-        if (power_input.num_inputs == 1) {
-            output.SetValue(i-1, power_input.inputs[0]);
+        int num_values = 0, value;
+        for (int v = 0; v < N; ++v) {
+            if (power_input.Has(v)) {
+                num_values++;
+                value = v;
+            }
+        }
+        if (num_values == 1) {
+            output.SetValue(i-1, value);
             output.SetDecided(i-1);
         }
 
@@ -188,20 +183,11 @@ Automaton<T,N,M>::State::State(size_t id)
 }
 
 template <class T, size_t N, size_t M>
-void Automaton<T,N,M>::PowerState::AddState(State *state) 
+void Automaton<T,N,M>::PowerState::AddState(State *state)
 {
     if (!member_states.Has(state->id)) {
         member_states.Add(state->id);
         states[num_states++] = state;
-    }
-}
-
-template <class T, size_t N, size_t M>
-void Automaton<T,N,M>::PowerInput::AddInput(T value) 
-{
-    if (!member_inputs.Has(value)) {
-        member_inputs.Add(value);
-        inputs[num_inputs++] = value;
     }
 }
 
