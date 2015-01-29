@@ -42,8 +42,11 @@ class RunLength : public Constraint<char>
                 void Update(const Line &in, const Line &out);
 
             private:
-                Line input[1<<B];
-                Line output[1<<B];
+                struct Entry {
+                    Line input;
+                    Line output;
+                };
+                Entry entry[1<<B];
         };
 
         Cache cache;
@@ -149,15 +152,15 @@ RunLength<M,B>::Cache::Cache()
     // Initialze cache to have invalid inputs
     // Only need to take care of the default Line value
     uint64_t index = Line().Hash();
-    input[index].SetValue(0, true);
+    entry[index].input.SetValue(0, true);
 }
 
 template <size_t M, size_t B>
 bool RunLength<M,B>::Cache::Lookup(const Line &in, Line &out) const
 {
     uint64_t index = in.Hash();
-    if (in == input[index]) {
-        out = output[index];
+    if (in == entry[index].input) {
+        out = entry[index].output;
         return true;
     } else
         return false;
@@ -167,8 +170,8 @@ template <size_t M, size_t B>
 void RunLength<M,B>::Cache::Update(const Line &in, const Line &out)
 {
     uint64_t index = in.Hash();
-    input[index]  = in;
-    output[index] = out;
+    entry[index].input  = in;
+    entry[index].output = out;
 }
 
 #endif
