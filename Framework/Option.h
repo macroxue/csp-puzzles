@@ -27,7 +27,7 @@ Option::Option() {
   interactive = false;
   num_solutions = 2;
   optimize = false;
-  decay = 0.9;
+  decay = 0.99;
   restart = INT_MAX;
   sort = SORT_DISABLED;
 }
