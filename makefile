@@ -2,7 +2,7 @@ CONSTRAINTS=Function.h FunctionAC.h OneToOne.h Different.h Same.h
 FRAMEWORK=Problem.h $(CONSTRAINTS) Constraint.h Variable.h Domain.h Queue.h \
 	  Option.h
 
-OPTS=-Wall -O3
+OPTS=-Wall -O3 -std=c++0x
 
 ifeq ($(wildcard Framework), )
     # build one puzzle in current directory
@@ -23,7 +23,7 @@ all: $(PUZZLES)
 $(filter Nonogram%,$(PUZZLES)): RunLength.h Automaton.h Set.h
 
 $(PUZZLES): %: %.cpp $(FRAMEWORK)
-	g++ $(OPTS) $(INCS) -o $@ $(filter %.cpp,$<) 
+	g++ $(OPTS) $(INCS) -o $@ $(filter %.cpp,$<)
 
 .PHONY: clean test
 
