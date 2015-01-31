@@ -223,6 +223,9 @@ class Domain<char> {
   // Domain defined by bounds.
   Domain(char low, char high);
 
+  // Domain defined by discrete values.
+  Domain(const char value[]);  // Ends with 0
+
   // Is the domain empty?
   bool IsEmpty() const;
 
@@ -284,6 +287,10 @@ Domain<char>::Domain(char low, char high) : count(0) {
     values[count++] = v;
     if (v == high) break;
   }
+}
+
+Domain<char>::Domain(const char values_in[]) : count(0) {
+  for (size_t i = 0; values_in[i]; i++) values[count++] = values_in[i];
 }
 
 bool Domain<char>::IsEmpty() const { return GetSize() == 0; }
