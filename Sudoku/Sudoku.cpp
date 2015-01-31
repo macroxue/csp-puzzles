@@ -5,119 +5,110 @@
 #include "OneToOne.h"
 #include "Problem.h"
 
-class Sudoku : public Problem<int>
-{
-    public:
-        Sudoku(Option option);
-        void ShowState(Variable<int> *current);
-        void ShowSolution();
+class Sudoku : public Problem<int> {
+ public:
+  Sudoku(Option option);
+  void ShowState(Variable<int> *current);
+  void ShowSolution();
 
-    private:
-        Variable<int>  *v[9][9];
+ private:
+  Variable<int> *v[9][9];
 };
 
-Sudoku::Sudoku(Option option)
-    : Problem<int>(option)
-{
-    // Variables 9x9
-    for (int y = 0; y < 9; y++) {
-        for (int x = 0; x < 9; x++) {
-            // Read input
-            int value;
-            do value = getchar();
-            while (value != '.' && !isdigit(value));
-            if (value == '.') value = 0;
-            else value -= '0';
-
-            // Variable domain based on input
-            if (value == 0)
-                v[x][y] = new Variable<int>(1, 9);
-            else
-                v[x][y] = new Variable<int>(value, value);
-        }
-    }
-
-    // Constraints on rows
-    for (int y = 0; y < 9; y++) {
-        OneToOne<int> *c = new OneToOne<int>();
-        for (int x = 0; x < 9; x++)
-            c->AddVariable(v[x][y]);
-        AddConstraint(c);
-    }
-
-    // Constraints on columns
+Sudoku::Sudoku(Option option) : Problem<int>(option) {
+  // Variables 9x9
+  for (int y = 0; y < 9; y++) {
     for (int x = 0; x < 9; x++) {
-        OneToOne<int> *c = new OneToOne<int>();
-        for (int y = 0; y < 9; y++)
-            c->AddVariable(v[x][y]);
-        AddConstraint(c);
-    }
+      // Read input
+      int value;
+      do
+        value = getchar();
+      while (value != '.' && !isdigit(value));
+      if (value == '.')
+        value = 0;
+      else
+        value -= '0';
 
-    // Constraints on 3x3 squares
-    for (int q = 0; q < 3; q++) {
-        for (int p = 0; p < 3; p++) {
-            OneToOne<int> *c = new OneToOne<int>();
-            for (int y = q * 3; y < q * 3 + 3; y++)  {
-                for (int x = p * 3; x < p * 3 + 3; x++) 
-                    c->AddVariable(v[x][y]);
-            }
-            AddConstraint(c);
-        }
+      // Variable domain based on input
+      if (value == 0)
+        v[x][y] = new Variable<int>(1, 9);
+      else
+        v[x][y] = new Variable<int>(value, value);
     }
+  }
+
+  // Constraints on rows
+  for (int y = 0; y < 9; y++) {
+    OneToOne<int> *c = new OneToOne<int>();
+    for (int x = 0; x < 9; x++) c->AddVariable(v[x][y]);
+    AddConstraint(c);
+  }
+
+  // Constraints on columns
+  for (int x = 0; x < 9; x++) {
+    OneToOne<int> *c = new OneToOne<int>();
+    for (int y = 0; y < 9; y++) c->AddVariable(v[x][y]);
+    AddConstraint(c);
+  }
+
+  // Constraints on 3x3 squares
+  for (int q = 0; q < 3; q++) {
+    for (int p = 0; p < 3; p++) {
+      OneToOne<int> *c = new OneToOne<int>();
+      for (int y = q * 3; y < q * 3 + 3; y++) {
+        for (int x = p * 3; x < p * 3 + 3; x++) c->AddVariable(v[x][y]);
+      }
+      AddConstraint(c);
+    }
+  }
 }
 
-void Sudoku::ShowState(Variable<int> *current)
-{
-    for (int y = 0; y < 9; y++) {
-        for (int x = 0; x < 9; x++) {
-            int domain_size = v[x][y]->GetDomainSize();
-            if (domain_size > 1) {
-                if (v[x][y] == current)
-                    putchar('[');
-                int num_cand = 0;
-                for (int i = 0; i < domain_size; i++) {
-                    int value = v[x][y]->GetValue(i);
-                    putchar(value + '0');
-                    num_cand++;
-                }
-                for (;num_cand < 9; num_cand++)
-                    putchar(' ');
-                if (v[x][y] == current)
-                    putchar(']');
-            } else {
-                printf("%c        ", v[x][y]->GetValue(0) + '0');
-            }
-            printf( x == 2 || x == 5 ? " | " : " ");
+void Sudoku::ShowState(Variable<int> *current) {
+  for (int y = 0; y < 9; y++) {
+    for (int x = 0; x < 9; x++) {
+      int domain_size = v[x][y]->GetDomainSize();
+      if (domain_size > 1) {
+        if (v[x][y] == current) putchar('[');
+        int num_cand = 0;
+        for (int i = 0; i < domain_size; i++) {
+          int value = v[x][y]->GetValue(i);
+          putchar(value + '0');
+          num_cand++;
         }
-        puts(y == 2||y == 5 ? 
+        for (; num_cand < 9; num_cand++) putchar(' ');
+        if (v[x][y] == current) putchar(']');
+      } else {
+        printf("%c        ", v[x][y]->GetValue(0) + '0');
+      }
+      printf(x == 2 || x == 5 ? " | " : " ");
+    }
+    puts(y == 2||y == 5 ?
             "\n------------------------------+-------------------------------+------------------------------" : "");
-    }
-    putchar('\n');
+  }
+  putchar('\n');
 }
 
-void Sudoku::ShowSolution()
-{
-    for (int y = 0; y < 9; y++) {
-        for (int x = 0; x < 9; x++) {
-            int value = v[x][y]->GetValue(0);
-            putchar(' ');
-            putchar(value == 0 ? '.' : value + '0');
-            printf( x == 2 || x == 5 ? " |" : "");
-        }
-        puts(y == 2 || y == 5 ? "\n ------+-------+------" : "");
+void Sudoku::ShowSolution() {
+  for (int y = 0; y < 9; y++) {
+    for (int x = 0; x < 9; x++) {
+      int value = v[x][y]->GetValue(0);
+      putchar(' ');
+      putchar(value == 0 ? '.' : value + '0');
+      printf(x == 2 || x == 5 ? " |" : "");
     }
-    putchar('\n');
+    puts(y == 2 || y == 5 ? "\n ------+-------+------" : "");
+  }
+  putchar('\n');
 }
 
-int main(int argc, char *argv[])
-{
-    Option option;
-    option.sort = Option::SORT_DOMAIN_SIZE;
-    option.GetOptions(argc, argv);
+int main(int argc, char *argv[]) {
+  Option option;
+  option.sort = Option::SORT_DOMAIN_SIZE;
+  option.GetOptions(argc, argv);
 
-    Sudoku puzzle(option);
-    puzzle.Solve();
+  Sudoku puzzle(option);
+  puzzle.Solve();
 
-    return 0;
+  return 0;
 }
 
