@@ -214,4 +214,150 @@ void Domain<T>::SetCount(size_t saved_count) {
   count = saved_count;
 }
 
+//
+// Specialization for char domain
+//
+template <>
+class Domain<char> {
+ public:
+  // Domain defined by bounds.
+  Domain(char low, char high);
+
+  // Is the domain empty?
+  bool IsEmpty() const;
+
+  // Is there a single value in the domain?
+  bool IsSingle() const;
+
+  // Does the domain contain the given value?
+  bool Contains(char value) const;
+
+  // Find in the domain the position of the given value.
+  // A return value of GetSize() means value not found.
+  size_t Find(char value) const;
+
+  // Get the size of the domain.
+  size_t GetSize() const;
+
+  // Get the bounds of the domain.
+  // Result is undefined if domain is empty.
+  void GetBounds(char &low, char &high) const;
+
+  // Limit the domain to be within the given bounds.
+  // The new bounds may be tighter than the given bounds.
+  // The domain may become empty.
+  void LimitBounds(char low, char high);
+
+  // Get the i-th value.
+  char GetValue(size_t i) const;
+  char operator[](size_t i) const;
+
+  // Erase the i-th value.
+  // The previous (i+1)-th value, if exists, becomes the new i-th value.
+  void EraseValueAt(size_t i);
+
+  // Keep values that are in this domain or another domain.
+  void Union(const Domain &domain);
+
+  // Keep values that are in this domain and another domain.
+  void Intersect(const Domain &domain);
+
+  // Keep values that are in this domain but not in another domain.
+  void Differ(const Domain &domain);
+
+  // Get the count to be saved in a checkpoint.
+  size_t GetCount() const;
+
+  // Restore saved count from a checkpoint.
+  void SetCount(size_t saved_count);
+
+ private:
+  char values[6];        // values in the domain
+  unsigned short count;  // number of values
+};
+
+//
+// Generic implementation with an array of values
+//
+Domain<char>::Domain(char low, char high) : count(0) {
+  for (char v = low;; v++) {
+    values[count++] = v;
+    if (v == high) break;
+  }
+}
+
+bool Domain<char>::IsEmpty() const { return GetSize() == 0; }
+
+bool Domain<char>::IsSingle() const { return GetSize() == 1; }
+
+bool Domain<char>::Contains(char value) const {
+  return Find(value) != GetSize();
+}
+
+size_t Domain<char>::Find(char value) const {
+  size_t i;
+  for (i = 0; i < GetSize(); i++)
+    if (values[i] == value) break;
+  return i;
+}
+
+size_t Domain<char>::GetSize() const { return count; }
+
+void Domain<char>::GetBounds(char &low, char &high) const {
+  low = high = values[0];
+  for (size_t i = 1; i < count; i++) {
+    if (low > values[i]) low = values[i];
+    if (high < values[i]) high = values[i];
+  }
+}
+
+void Domain<char>::LimitBounds(char low, char high) {
+  for (size_t i = 0; i < count; i++) {
+    if (values[i] < low || values[i] > high) {
+      EraseValueAt(i);
+      i--;
+    }
+  }
+}
+
+char Domain<char>::GetValue(size_t i) const { return values[i]; }
+
+char Domain<char>::operator[](size_t i) const { return GetValue(i); }
+
+void Domain<char>::EraseValueAt(size_t i) {
+  count--;
+
+  // swap the i-th and the last values
+  char temp = values[i];
+  values[i] = values[count];
+  values[count] = temp;
+}
+
+void Domain<char>::Union(const Domain &domain) {
+  for (size_t i = 0; i < domain.GetSize(); i++) {
+    char value = domain.GetValue(i);
+    if (!Contains(value)) values[count++] = value;
+  }
+}
+
+void Domain<char>::Intersect(const Domain &domain) {
+  for (size_t i = 0; i < GetSize(); i++) {
+    if (!domain.Contains(values[i])) {
+      EraseValueAt(i);
+      i--;
+    }
+  }
+}
+
+void Domain<char>::Differ(const Domain &domain) {
+  for (size_t i = 0; i < domain.GetSize(); i++) {
+    size_t j = Find(domain[i]);
+    if (j != GetSize()) EraseValueAt(j);
+  }
+}
+
+size_t Domain<char>::GetCount() const { return count; }
+
+void Domain<char>::SetCount(size_t saved_count) { count = saved_count; }
+
 #endif
