@@ -63,7 +63,6 @@ class Problem {
   size_t num_solutions;
   size_t search_count;
   size_t deadend_count;
-  bool in_deadend;
 
   Option option;
 
@@ -89,7 +88,6 @@ Problem<T>::Problem(Option option)
     : num_solutions(0),
       search_count(0),
       deadend_count(0),
-      in_deadend(false),
       option(option),
       min_cost(LONG_MAX) {}
 
@@ -264,7 +262,6 @@ void Problem<T>::Solve() {
 
     while (!Search(0)) {
       deadend_count = 0;
-      in_deadend = false;
       storage.clear();
       Sort(0);
       printf("Restart search\n");
@@ -298,6 +295,7 @@ bool Problem<T>::Search(size_t v) {
   size_t domain_size = variable->GetDomainSize();
   T values[domain_size];
   OrderValues(variable, values);
+  bool is_deadend = true;
   for (int i = 0; i < domain_size; ++i) {
     if (i < domain_size - 1) StartCheckpoint();
     variable->Decide(values[i]);
@@ -309,7 +307,7 @@ bool Problem<T>::Search(size_t v) {
     DEBUG(printf("%ld: Variable %ld = %d, %d\n", v, variable->GetId(),
                  values[i], consistent));
     if (consistent) {
-      in_deadend = false;
+      is_deadend = false;
       Sort(v + 1);
       DEBUG(ShowState(variable));
       if (!Search(v + 1)) {
@@ -320,8 +318,7 @@ bool Problem<T>::Search(size_t v) {
     if (i < domain_size - 1) RestoreCheckpoint();
     variable->Exclude(values[i]);
   }
-  if (!in_deadend) {
-    in_deadend = true;
+  if (is_deadend) {
     deadend_count++;
     DEBUG(printf("%ld: Variable %ld deadend %ld\n", v, variable->GetId(),
                  variable->failures));
