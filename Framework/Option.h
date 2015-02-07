@@ -16,6 +16,7 @@ struct Option {
   size_t restart;
   enum sort_t { SORT_DISABLED, SORT_DOMAIN_SIZE, SORT_FAILURES };
   sort_t sort;
+  bool sort_values = false;
 
   Option();
   void GetOptions(int argc, char *argv[]);

@@ -138,7 +138,7 @@ template <class T>
 void Problem<T>::OrderValues(Variable<T> *variable, T values[]) const {
   size_t domain_size = variable->GetDomainSize();
   for (size_t i = 0; i < domain_size; i++) values[i] = variable->GetValue(i);
-  sort(values, values + domain_size, CompareValues());
+  if (option.sort_values) sort(values, values + domain_size, CompareValues());
 }
 
 template <class T>
