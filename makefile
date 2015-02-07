@@ -13,7 +13,7 @@ else
     # build all puzzles
     PUZZLES=Fiver/Fiver Sudoku/Sudoku SendMoreMoney/SendMoreMoney Zebra/Zebra \
 	    Queens/Queens Strimko/Strimko Crossword/Crossword Nonogram/Nonogram \
-	    MasterMind/MasterMind Kakuro/Kakuro
+	    MasterMind/MasterMind Kakuro/Kakuro Numberlink/Numberlink
     VPATH=./Framework:./Nonogram
     INCS=-I./Framework
 endif
