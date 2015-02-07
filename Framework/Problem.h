@@ -374,6 +374,28 @@ void Problem<T>::Sort(size_t v) {
         swap(variables[v], variables[max_index]);
       break;
     }
+    case Option::SORT_WEIGHT: {
+      float min_weight = INT_MAX;
+      size_t min_index = variables.size();
+      for (size_t i = v; i < variables.size(); i++) {
+        size_t domain_size = variables[i]->GetDomainSize();
+        if (domain_size == 1) {
+          swap(variables[v], variables[i]);
+          if (min_index == v) min_index = i;
+          v++;
+        } else {
+          float weight = (variables[i]->GetDomainSize() - 2) /
+                         (variables[i]->failures + 1);
+          if (min_weight > weight) {
+            min_weight = weight;
+            min_index = i;
+          }
+        }
+      }
+      if (min_index != variables.size())
+        swap(variables[v], variables[min_index]);
+      break;
+    }
   }
 }
 

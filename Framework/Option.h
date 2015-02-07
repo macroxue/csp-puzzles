@@ -14,7 +14,7 @@ struct Option {
   bool optimize;
   float decay;
   size_t restart;
-  enum sort_t { SORT_DISABLED, SORT_DOMAIN_SIZE, SORT_FAILURES };
+  enum sort_t { SORT_DISABLED, SORT_DOMAIN_SIZE, SORT_FAILURES, SORT_WEIGHT };
   sort_t sort;
   bool sort_values = false;
 
@@ -59,6 +59,9 @@ void Option::GetOptions(int argc, char *argv[]) {
             break;
           case 'f':
             sort = SORT_FAILURES;
+            break;
+          case 'w':
+            sort = SORT_WEIGHT;
             break;
           case 'D':
             sort = SORT_DISABLED;

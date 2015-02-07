@@ -17,7 +17,7 @@ done
 for INPUT in Kakuro/kakuro.in*; do
     time Kakuro/Kakuro < $INPUT
 done
-for INPUT in Numberlink/numberlink.in[1-5]; do
+for INPUT in Numberlink/numberlink.in[1-9]; do
     time Numberlink/Numberlink < $INPUT
 done
 

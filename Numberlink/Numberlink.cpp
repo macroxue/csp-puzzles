@@ -121,7 +121,7 @@ void Numberlink::ShowSolution() {
 
 int main(int argc, char *argv[]) {
   Option option;
-  option.sort = Option::SORT_DOMAIN_SIZE;
+  option.sort = Option::SORT_WEIGHT;
   option.arc_consistency = true;
   option.GetOptions(argc, argv);
 
