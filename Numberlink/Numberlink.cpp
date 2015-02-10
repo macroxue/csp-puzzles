@@ -12,8 +12,16 @@ class Link : public Constraint<int> {
   Link(int same_count) : same_count(same_count) {}
   bool Enforce() override;
 
+  void AddDiagonal(Variable<int> *diagonal) { diagonals.push_back(diagonal); }
+
  private:
+  bool CheckDiagonals() const;
+  bool Decided(Variable<int> *v, int a) const {
+    return v->GetDomainSize() == 1 && v->GetValue(0) == a;
+  }
+
   const int same_count;
+  vector<Variable<int> *> diagonals;
 };
 
 bool Link::Enforce() {
@@ -23,7 +31,7 @@ bool Link::Enforce() {
   int num_decided_same = 0, num_maybe_same = 0;
   Variable<int> *maybe_variables[variables.size()];
   for (size_t i = 1; i < variables.size(); ++i) {
-    if (variables[i]->GetDomainSize() == 1 && variables[i]->GetValue(0) == a)
+    if (Decided(variables[i], a))
       ++num_decided_same;
     else if (variables[i]->GetDomainSize() > 1 &&
              variables[i]->GetDomain().Contains(a))
@@ -39,13 +47,29 @@ bool Link::Enforce() {
         maybe_variables[i]->PropagateDecision(this);
 #endif
     }
-    return true;
+    return CheckDiagonals();
   }
   if (num_decided_same + num_maybe_same < same_count) return false;
   if (num_decided_same + num_maybe_same > same_count) return true;
   for (int i = 0; i < num_maybe_same; ++i) {
     maybe_variables[i]->Decide(a);
     maybe_variables[i]->PropagateDecision(this);
+  }
+  return CheckDiagonals();
+}
+
+bool Link::CheckDiagonals() const {
+  if (variables.size() != 5) return true;
+  int a = variables[0]->GetValue(0);
+  for (size_t i = 0; i < diagonals.size() - 1; ++i) {
+    if (Decided(variables[i + 1], a) && Decided(variables[i + 2], a)) {
+      diagonals[i]->Exclude(a);
+      return diagonals[i]->GetDomainSize() > 0;
+    }
+  }
+  if (Decided(variables.back(), a) && Decided(variables[1], a)) {
+    diagonals.back()->Exclude(a);
+    return diagonals.back()->GetDomainSize() > 0;
   }
   return true;
 }
@@ -91,11 +115,18 @@ Numberlink::Numberlink(const Option &option) : Problem<int>(option) {
       auto link = new Link(values[r][c] > 0 ? 1 : 2);
       // Add center
       link->AddVariable(grid[r][c]);
-      // Add neighbors
+      // Add neighbors clockwise.
       if (r > 0) link->AddVariable(grid[r - 1][c]);
-      if (c > 0) link->AddVariable(grid[r][c - 1]);
-      if (r < rows - 1) link->AddVariable(grid[r + 1][c]);
       if (c < columns - 1) link->AddVariable(grid[r][c + 1]);
+      if (r < rows - 1) link->AddVariable(grid[r + 1][c]);
+      if (c > 0) link->AddVariable(grid[r][c - 1]);
+      // Add diagonals clockwise, ignoring 2 or 3 neighbors for simplicity
+      if (r > 0 && r < rows - 1 && c > 0 && c < columns - 1) {
+        link->AddDiagonal(grid[r - 1][c + 1]);
+        link->AddDiagonal(grid[r + 1][c + 1]);
+        link->AddDiagonal(grid[r + 1][c - 1]);
+        link->AddDiagonal(grid[r - 1][c - 1]);
+      }
       AddConstraint(link);
     }
 }
