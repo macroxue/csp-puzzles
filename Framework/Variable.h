@@ -35,6 +35,8 @@ class Variable {
   void ExcludeAt(size_t i);
 
   T GetValue(size_t i) const;
+  bool Is(T value) const;
+  bool Maybe(T value) const;
   size_t GetDomainSize() const;
   const Domain<T> &GetDomain() const;
   void ShowDomain() const;
@@ -54,6 +56,7 @@ class Variable {
  public:
   float failures;
   bool active;
+  bool is_hidden = false;
 };
 
 #include "Constraint.h"
@@ -174,6 +177,16 @@ void Variable<T>::ExcludeAt(size_t i) {
 template <class T>
 T Variable<T>::GetValue(size_t i) const {
   return domain[i];
+}
+
+template <class T>
+bool Variable<T>::Is(T value) const {
+  return GetDomainSize() == 1 && GetValue(0) == value;
+}
+
+template <class T>
+bool Variable<T>::Maybe(T value) const {
+  return GetDomainSize() > 1 && domain.Contains(value);
 }
 
 template <class T>

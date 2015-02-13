@@ -16,9 +16,6 @@ class Link : public Constraint<int> {
 
  private:
   bool CheckDiagonals() const;
-  bool Decided(Variable<int> *v, int a) const {
-    return v->GetDomainSize() == 1 && v->GetValue(0) == a;
-  }
 
   const int same_count;
   vector<Variable<int> *> diagonals;
@@ -31,10 +28,9 @@ bool Link::Enforce() {
   int num_decided_same = 0, num_maybe_same = 0;
   Variable<int> *maybe_variables[variables.size()];
   for (size_t i = 1; i < variables.size(); ++i) {
-    if (Decided(variables[i], a))
+    if (variables[i]->Is(a))
       ++num_decided_same;
-    else if (variables[i]->GetDomainSize() > 1 &&
-             variables[i]->GetDomain().Contains(a))
+    else if (variables[i]->Maybe(a))
       maybe_variables[num_maybe_same++] = variables[i];
   }
   if (num_decided_same > same_count) return false;
@@ -62,12 +58,12 @@ bool Link::CheckDiagonals() const {
   if (variables.size() != 5) return true;
   int a = variables[0]->GetValue(0);
   for (size_t i = 0; i < diagonals.size() - 1; ++i) {
-    if (Decided(variables[i + 1], a) && Decided(variables[i + 2], a)) {
+    if (variables[i + 1]->Is(a) && variables[i + 2]->Is(a)) {
       diagonals[i]->Exclude(a);
       return diagonals[i]->GetDomainSize() > 0;
     }
   }
-  if (Decided(variables.back(), a) && Decided(variables[1], a)) {
+  if (variables.back()->Is(a) && variables[1]->Is(a)) {
     diagonals.back()->Exclude(a);
     return diagonals.back()->GetDomainSize() > 0;
   }

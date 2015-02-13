@@ -130,7 +130,7 @@ void Problem<T>::AddVariable(Variable<T> *variable) {
   if (variable->active) return;
   variable->active = true;
   variable->SetId(variables.size());
-  variables.push_back(variable);
+  if (!variable->is_hidden) variables.push_back(variable);
   variable->SetStorage(&storage);
 }
 
