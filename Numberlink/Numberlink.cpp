@@ -78,13 +78,15 @@ class Numberlink : public Problem<int> {
 
  private:
   int rows, columns;
+  vector<vector<int>> values;
   vector<vector<Variable<int> *>> grid;
 };
 
 Numberlink::Numberlink(const Option &option) : Problem<int>(option) {
   int num_items = scanf("%d %d", &rows, &columns);
   assert(num_items == 2);
-  int values[rows][columns];
+  values.resize(rows);
+  for (int r = 0; r < rows; ++r) values[r].resize(columns);
   int min_value = INT_MAX, max_value = 0;
   for (int r = 0; r < rows; ++r)
     for (int c = 0; c < columns; ++c) {
@@ -141,8 +143,34 @@ void Numberlink::ShowState(Variable<int> *current) {
 
 void Numberlink::ShowSolution() {
   for (int r = 0; r < rows; ++r) {
-    for (int c = 0; c < columns; ++c) printf("%3d", grid[r][c]->GetValue(0));
+    for (int c = 0; c < columns; ++c) {
+      int v = grid[r][c]->GetValue(0);
+      bool same_left = c > 0 && grid[r][c - 1]->GetValue(0) == v;
+      bool same_right = c < columns - 1 && grid[r][c + 1]->GetValue(0) == v;
+      if (values[r][c] > 0) {
+        if (same_left)
+          printf(v >= 10 ? "--%d" : "---%d", v);
+        else
+          printf("%4d", v);
+      } else {
+        if (same_left && same_right)
+          printf("----");
+        else if (same_left)
+          printf("---+");
+        else if (same_right)
+          printf("   +");
+        else
+          printf("   |");
+      }
+    }
     putchar('\n');
+    if (r < rows - 1) {
+      for (int c = 0; c < columns; ++c) {
+        int v = grid[r][c]->GetValue(0);
+        printf(grid[r + 1][c]->GetValue(0) == v ? "   |" : "    ");
+      }
+      putchar('\n');
+    }
   }
 }
 
