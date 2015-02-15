@@ -32,6 +32,7 @@ class Problem {
   void AddVariable(Variable<T> *variable);
   void Solve();
   virtual void ShowState(Variable<T> *current);
+  virtual bool IsValidSolution() { return true; }
   virtual void ShowSolution();
   virtual long GetSolutionCost();
 
@@ -470,6 +471,7 @@ bool Problem<T>::CheckSolution(size_t v) {
 
 template <class T>
 void Problem<T>::ProcessSolution() {
+  if (!IsValidSolution()) return;
   num_solutions++;
   if (option.optimize) {
     long cost = GetSolutionCost();

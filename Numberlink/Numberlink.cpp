@@ -74,6 +74,7 @@ class Numberlink : public Problem<int> {
  public:
   Numberlink(const Option &option);
   void ShowState(Variable<int> *current) override;
+  bool IsValidSolution() override;
   void ShowSolution() override;
 
  private:
@@ -139,6 +140,39 @@ void Numberlink::ShowState(Variable<int> *current) {
     }
     putchar('\n');
   }
+}
+
+bool Numberlink::IsValidSolution() {
+  // Check if all cells can be visited from starting numbers.
+  bool visited[rows][columns];
+  memset(visited, false, sizeof(visited));
+  for (int r = 0; r < rows; ++r) {
+    for (int c = 0; c < columns; ++c) {
+      if (visited[r][c] || values[r][c] == 0) continue;
+      int a = values[r][c];
+      int r1 = r, c1 = c;
+      while (true) {
+        visited[r1][c1] = true;
+        if (r1 > 0 && !visited[r1 - 1][c1] && grid[r1 - 1][c1]->GetValue(0) == a)
+          --r1;
+        else if (c1 > 0 && !visited[r1][c1 - 1] &&
+                 grid[r1][c1 - 1]->GetValue(0) == a)
+          --c1;
+        else if (r1 < rows - 1 && !visited[r1 + 1][c1] &&
+                 grid[r1 + 1][c1]->GetValue(0) == a)
+          ++r1;
+        else if (c1 < columns - 1 && !visited[r1][c1 + 1] &&
+                 grid[r1][c1 + 1]->GetValue(0) == a)
+          ++c1;
+        else
+          break;
+      }
+    }
+  }
+  for (int r = 0; r < rows; ++r)
+    for (int c = 0; c < columns; ++c)
+      if (!visited[r][c]) return false;
+  return true;
 }
 
 void Numberlink::ShowSolution() {
