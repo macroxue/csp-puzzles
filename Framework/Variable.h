@@ -4,6 +4,7 @@
 #include "Domain.h"
 
 #include <stdio.h>
+#include <set>
 #include <vector>
 using namespace std;
 
@@ -28,6 +29,7 @@ class Variable {
   bool PropagateDecision(Constraint<T> *start);
   bool PropagateReduction(Constraint<T> *start);
   void ActivateAffectedVariables();
+  void GetDecidedValuesInSameContraints(set<T>* values);
 
   void OnUpdate();
   void Decide(T value);
@@ -144,6 +146,12 @@ template <class T>
 void Variable<T>::ActivateAffectedVariables() {
   for (size_t i = 0; i < constraints.size(); i++)
     constraints[i]->ActivateVariables();
+}
+
+template <class T>
+void Variable<T>::GetDecidedValuesInSameContraints(set<T>* values) {
+  for (size_t i = 0; i < constraints.size(); i++)
+    constraints[i]->GetDecidedValues(values);
 }
 
 template <class T>

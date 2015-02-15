@@ -3,6 +3,7 @@
 
 #include "Queue.h"
 
+#include <set>
 #include <vector>
 using namespace std;
 
@@ -35,6 +36,7 @@ class Constraint : public QueueObject {
   virtual bool Enforce() { return true; }
 
   void ActivateVariables();
+  void GetDecidedValues(set<T> *values);
 
  protected:
   vector<Variable<T> *> variables;
@@ -108,6 +110,13 @@ bool Constraint<T>::OnDecided(Variable<T> *decided) {
 template <class T>
 void Constraint<T>::ActivateVariables() {
   for (size_t i = 0; i < variables.size(); i++) variables[i]->active = true;
+}
+
+template <class T>
+void Constraint<T>::GetDecidedValues(set<T> *values) {
+  for (size_t i = 0; i < variables.size(); i++)
+    if (variables[i]->GetDomainSize() == 1)
+      values->insert(variables[i]->GetValue(0));
 }
 
 #endif

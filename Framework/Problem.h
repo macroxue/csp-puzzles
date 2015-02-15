@@ -75,10 +75,6 @@ class Problem {
   Counter counters[16];
 
   long min_cost;
-
-  struct CompareValues {
-    bool operator()(const T &v1, const T &v2) { return v1 > v2; }
-  };
 };
 
 #include <sys/time.h>
@@ -138,7 +134,30 @@ template <class T>
 void Problem<T>::OrderValues(Variable<T> *variable, T values[]) const {
   size_t domain_size = variable->GetDomainSize();
   for (size_t i = 0; i < domain_size; i++) values[i] = variable->GetValue(i);
-  if (option.sort_values) sort(values, values + domain_size, CompareValues());
+  switch (option.sort_values) {
+    case Option::SORT_VALUES_DISABLED:
+      break;
+    case Option::SORT_VALUES_ASCENDING:
+      sort(values, values + domain_size,
+           [](const T &v1, const T &v2) { return v1 < v2; });
+      break;
+    case Option::SORT_VALUES_DESCENDING:
+      sort(values, values + domain_size,
+           [](const T &v1, const T &v2) { return v1 > v2; });
+      break;
+    case Option::SORT_VALUES_IN_CONSTRAINT: {
+      set<T> values_in_constraint;
+      variable->GetDecidedValuesInSameContraints(&values_in_constraint);
+      int top = 0;
+      for (size_t i = 0; i < domain_size; i++)
+        if (values_in_constraint.find(values[i]) !=
+            values_in_constraint.end()) {
+          swap(values[i], values[top]);
+          ++top;
+        }
+      break;
+    }
+  }
 }
 
 template <class T>

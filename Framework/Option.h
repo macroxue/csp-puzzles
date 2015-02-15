@@ -7,35 +7,30 @@
 #include <unistd.h>
 
 struct Option {
-  bool arc_consistency;
-  bool debug;
-  bool interactive;
-  size_t num_solutions;
-  bool optimize;
-  float decay;
-  size_t restart;
+  bool arc_consistency = false;
+  bool debug = false;
+  bool interactive = false;
+  size_t num_solutions = 2;
+  bool optimize = false;
+  float decay = 0.99;
+  size_t restart = INT_MAX;
   enum sort_t { SORT_DISABLED, SORT_DOMAIN_SIZE, SORT_FAILURES, SORT_WEIGHT };
-  sort_t sort;
-  bool sort_values = false;
+  sort_t sort = SORT_DISABLED;
+  enum sort_values_t {
+    SORT_VALUES_DISABLED,
+    SORT_VALUES_ASCENDING,
+    SORT_VALUES_DESCENDING,
+    SORT_VALUES_IN_CONSTRAINT,
+  };
+  sort_values_t sort_values = SORT_VALUES_DISABLED;
 
-  Option();
   void GetOptions(int argc, char *argv[]);
+  void ShowOptions() const;
 };
-
-Option::Option() {
-  arc_consistency = false;
-  debug = false;
-  interactive = false;
-  num_solutions = 2;
-  optimize = false;
-  decay = 0.99;
-  restart = INT_MAX;
-  sort = SORT_DISABLED;
-}
 
 void Option::GetOptions(int argc, char *argv[]) {
   int c;
-  while ((c = getopt(argc, argv, "adn:or:s:y:")) != -1) {
+  while ((c = getopt(argc, argv, "adn:or:s:v:y:")) != -1) {
     switch (c) {
       case 'a':
         arc_consistency = !arc_consistency;
@@ -67,7 +62,26 @@ void Option::GetOptions(int argc, char *argv[]) {
             sort = SORT_DISABLED;
             break;
           default:
-            printf("Invalid sort option: %s\n", optarg);
+            printf("Invalid variable-ordering option: %s\n", optarg);
+            exit(1);
+        }
+        break;
+      case 'v':
+        switch (optarg[0]) {
+          case 'a':
+            sort_values = SORT_VALUES_ASCENDING;
+            break;
+          case 'c':
+            sort_values = SORT_VALUES_IN_CONSTRAINT;
+            break;
+          case 'd':
+            sort_values = SORT_VALUES_DESCENDING;
+            break;
+          case 'D':
+            sort_values = SORT_VALUES_DISABLED;
+            break;
+          default:
+            printf("Invalid value-ordering option: %s\n", optarg);
             exit(1);
         }
         break;
@@ -76,6 +90,18 @@ void Option::GetOptions(int argc, char *argv[]) {
         break;
     }
   }
+}
+
+void Option::ShowOptions() const {
+  printf("arc_consistency = %d\n", arc_consistency);
+  printf("debug = %d\n", debug);
+  printf("interactive = %d\n", interactive);
+  printf("num_solutions = %ld\n", num_solutions);
+  printf("optimize = %d\n", optimize);
+  printf("decay = %f\n", decay);
+  printf("restart = %ld\n", restart);
+  printf("sort = %d\n", sort);
+  printf("sort_values = %d\n", sort_values);
 }
 
 #endif

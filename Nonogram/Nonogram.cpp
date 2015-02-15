@@ -180,7 +180,7 @@ int main(int argc, char *argv[]) {
 
   Option option;
   option.sort = Option::SORT_FAILURES;
-  option.sort_values = true;
+  option.sort_values = Option::SORT_VALUES_DESCENDING;
   option.arc_consistency = true;
   option.GetOptions(argc, argv);
   if (optind < argc) rotate = atoi(argv[optind]) != 0;
