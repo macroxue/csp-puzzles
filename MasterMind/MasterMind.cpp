@@ -122,6 +122,7 @@ int main(int argc, char *argv[]) {
   Option option;
   option.GetOptions(argc, argv);
   option.interactive = true;
+  option.num_solutions = MAX_GUESSES;
   if (optind < argc) num_pegs = atoi(argv[optind]);
   if (optind + 1 < argc) num_colors = atoi(argv[optind + 1]);
   if (optind + 2 < argc) {
