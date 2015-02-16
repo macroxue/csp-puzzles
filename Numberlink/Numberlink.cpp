@@ -1,6 +1,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <map>
 #include <set>
 #include <vector>
 using namespace std;
@@ -72,7 +73,7 @@ bool Link::CheckDiagonals() const {
 
 class Numberlink : public Problem<int> {
  public:
-  Numberlink(const Option &option);
+  Numberlink(const Option &option, bool use_alt_format);
   void ShowState(Variable<int> *current) override;
   bool IsValidSolution() override;
   void ShowSolution() override;
@@ -83,21 +84,36 @@ class Numberlink : public Problem<int> {
   vector<vector<Variable<int> *>> grid;
 };
 
-Numberlink::Numberlink(const Option &option) : Problem<int>(option) {
+Numberlink::Numberlink(const Option &option, bool use_alt_format)
+    : Problem<int>(option) {
   int num_items = scanf("%d %d", &rows, &columns);
   assert(num_items == 2);
   values.resize(rows);
   for (int r = 0; r < rows; ++r) values[r].resize(columns);
-  int min_value = INT_MAX, max_value = 0;
+  map<int, int> chars;
   for (int r = 0; r < rows; ++r)
     for (int c = 0; c < columns; ++c) {
-      int num_items = scanf("%d", &values[r][c]);
-      assert(num_items == 1);
-      if (values[r][c] > 0) {
-        min_value = min(min_value, values[r][c]);
-        max_value = max(max_value, values[r][c]);
+      int v;
+      if (!use_alt_format) {
+        int num_items = scanf("%d", &v);
+        assert(num_items == 1);
+        if (v == 0) continue;
+      } else {
+        do
+          v = getchar();
+        while (v != '.' && !isalnum(v));
+        if (v == '.') continue;
+      }
+      auto it = chars.find(v);
+      if (it == chars.end()) {
+        values[r][c] = chars.size() + 1;
+        chars[v] = values[r][c];
+      } else {
+        values[r][c] = it->second;
       }
     }
+  int min_value = 1;
+  int max_value = chars.size();
 
   grid.resize(rows);
   for (int r = 0; r < rows; ++r) grid[r].resize(columns);
@@ -153,7 +169,8 @@ bool Numberlink::IsValidSolution() {
       int r1 = r, c1 = c;
       while (true) {
         visited[r1][c1] = true;
-        if (r1 > 0 && !visited[r1 - 1][c1] && grid[r1 - 1][c1]->GetValue(0) == a)
+        if (r1 > 0 && !visited[r1 - 1][c1] &&
+            grid[r1 - 1][c1]->GetValue(0) == a)
           --r1;
         else if (c1 > 0 && !visited[r1][c1 - 1] &&
                  grid[r1][c1 - 1]->GetValue(0) == a)
@@ -211,11 +228,14 @@ void Numberlink::ShowSolution() {
 int main(int argc, char *argv[]) {
   Option option;
   option.sort = Option::SORT_WEIGHT;
-  option.sort_values = Option::SORT_VALUES_DISABLED;
+  option.sort_values = Option::SORT_VALUES_DESCENDING;
   option.arc_consistency = true;
   option.GetOptions(argc, argv);
 
-  Numberlink puzzle(option);
+  bool use_alt_format = false;
+  if (optind < argc) use_alt_format = atoi(argv[optind]) != 0;
+
+  Numberlink puzzle(option, use_alt_format);
   puzzle.Solve();
 
   return 0;
