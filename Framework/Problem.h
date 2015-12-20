@@ -340,7 +340,7 @@ bool Problem<T>::Search(size_t v) {
   }
   if (is_deadend) {
     deadend_count++;
-    DEBUG(printf("%ld: Variable %ld deadend %ld\n", v, variable->GetId(),
+    DEBUG(printf("%ld: Variable %ld failures %f\n", v, variable->GetId(),
                  variable->failures));
     variable->failures++;
     // ShowState(variable);
