@@ -76,6 +76,9 @@ Nonogram::Nonogram(Option option, bool rotate) : Problem<char>(option) {
     CreateColumnConstraints();
     CreateRowConstraints();
   }
+  for (int x = 0; x < columns; x++)
+    for (int y = 0; y < rows; y++)
+      grid[x][y].SetId(x + y * columns);
 
   // Initialize hash random numbers
   srand(1);
