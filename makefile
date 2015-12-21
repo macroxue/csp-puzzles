@@ -1,4 +1,4 @@
-CONSTRAINTS=Function.h FunctionAC.h OneToOne.h Different.h Same.h
+CONSTRAINTS=Function.h FunctionAC.h OneToOne.h Different.h Same.h BooleanOr.h
 FRAMEWORK=Problem.h $(CONSTRAINTS) Constraint.h Variable.h Domain.h Queue.h \
 	  Option.h
 
@@ -13,7 +13,7 @@ else
     # build all puzzles
     PUZZLES=Fiver/Fiver Sudoku/Sudoku SendMoreMoney/SendMoreMoney Zebra/Zebra \
 	    Queens/Queens Strimko/Strimko Crossword/Crossword Nonogram/Nonogram \
-	    MasterMind/MasterMind Kakuro/Kakuro Numberlink/Numberlink
+	    MasterMind/MasterMind Kakuro/Kakuro Numberlink/Numberlink Sat/Sat
     VPATH=./Framework:./Nonogram
     INCS=-I./Framework
 endif

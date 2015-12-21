@@ -41,6 +41,7 @@ class Variable {
   bool Maybe(T value) const;
   size_t GetDomainSize() const;
   const Domain<T> &GetDomain() const;
+  size_t GetNumConstraints() const { return constraints.size(); }
   void ShowDomain() const;
 
   typedef vector<pair<Variable<T> *, size_t> > Storage;
