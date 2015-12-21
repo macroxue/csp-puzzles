@@ -306,6 +306,8 @@ bool Problem<T>::Search(size_t v) {
   }
   if (v == variables.size()) {
     ProcessSolution();
+    // Avoid duplicate solutions. Don't restart after one has been found.
+    option.restart = INT_MAX;
     return true;
   }
 
