@@ -20,4 +20,7 @@ done
 for INPUT in Numberlink/numberlink.in[1-9]; do
     time Numberlink/Numberlink < $INPUT
 done
+for INPUT in Sat/sat.in[1-9] Sat/unsat.in[1-9]; do
+    time Sat/Sat < $INPUT
+done
 
