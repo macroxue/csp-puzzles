@@ -1,4 +1,5 @@
-CONSTRAINTS=Function.h FunctionAC.h OneToOne.h Different.h Same.h BooleanOr.h
+CONSTRAINTS=Function.h FunctionAC.h OneToOne.h Different.h Same.h BooleanOr.h \
+    BooleanSum.h
 FRAMEWORK=Problem.h $(CONSTRAINTS) Constraint.h Variable.h Domain.h Queue.h \
 	  Option.h
 

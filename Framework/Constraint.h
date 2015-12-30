@@ -38,6 +38,8 @@ class Constraint : public QueueObject {
   void ActivateVariables();
   void GetDecidedValues(set<T> *values);
 
+  virtual void Show() const;
+
  protected:
   vector<Variable<T> *> variables;
   Problem<T> *problem;
@@ -117,6 +119,12 @@ void Constraint<T>::GetDecidedValues(set<T> *values) {
   for (size_t i = 0; i < variables.size(); i++)
     if (variables[i]->GetDomainSize() == 1)
       values->insert(variables[i]->GetValue(0));
+}
+
+template <class T>
+void Constraint<T>::Show() const {
+  printf("Constraint has %lu variables:\n", variables.size());
+  for (const auto *v : variables) v->ShowDomain();
 }
 
 #endif

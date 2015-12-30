@@ -32,7 +32,7 @@ class Variable {
   void GetDecidedValuesInSameContraints(set<T>* values);
 
   void OnUpdate();
-  void Decide(T value);
+  bool Decide(T value);
   bool Exclude(T value);
   void ExcludeAt(size_t i);
 
@@ -161,10 +161,11 @@ void Variable<T>::OnUpdate() {
 }
 
 template <class T>
-void Variable<T>::Decide(T value) {
+bool Variable<T>::Decide(T value) {
   // Assert: value must be in the domain.
   OnUpdate();
   domain.LimitBounds(value, value);
+  return domain.GetSize() > 0;
 }
 
 template <class T>
@@ -172,9 +173,8 @@ bool Variable<T>::Exclude(T value) {
   size_t pos = domain.Find(value);
   if (pos != domain.GetSize()) {
     ExcludeAt(pos);
-    return true;
-  } else
-    return false;
+  }
+  return domain.GetSize() > 0;
 }
 
 template <class T>
