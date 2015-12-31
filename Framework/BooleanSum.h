@@ -50,16 +50,14 @@ bool BooleanSum<T>::Enforce() {
       (relation == LESS_THAN && sum == target - 1)) {
     for (size_t i = 0; i < num_variables; i++) {
       if (variables[i]->GetDomainSize() > 1) {
-        variables[i]->Decide(false);
-        if (!variables[i]->PropagateDecision(this)) return false;
+        if (!variables[i]->Decide(false, this)) return false;
       }
     }
   } else if ((relation == EQUAL_TO && sum + num_undecided == target) ||
              (relation == GREATER_THAN && sum + num_undecided == target + 1)) {
     for (size_t i = 0; i < num_variables; i++) {
       if (variables[i]->GetDomainSize() > 1) {
-        variables[i]->Decide(true);
-        if (!variables[i]->PropagateDecision(this)) return false;
+        if (!variables[i]->Decide(true, this)) return false;
       }
     }
   }

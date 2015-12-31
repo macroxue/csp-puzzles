@@ -29,9 +29,11 @@ class Variable {
   bool PropagateDecision(Constraint<T> *start);
   bool PropagateReduction(Constraint<T> *start);
   void ActivateAffectedVariables();
-  void GetDecidedValuesInSameContraints(set<T>* values);
+  void GetDecidedValuesInSameContraints(set<T> *values);
 
   void OnUpdate();
+  bool Decide(T value, Constraint<T> *constraint);
+  bool Exclude(T value, Constraint<T> *constraint);
   bool Decide(T value);
   bool Exclude(T value);
   void ExcludeAt(size_t i);
@@ -150,7 +152,7 @@ void Variable<T>::ActivateAffectedVariables() {
 }
 
 template <class T>
-void Variable<T>::GetDecidedValuesInSameContraints(set<T>* values) {
+void Variable<T>::GetDecidedValuesInSameContraints(set<T> *values) {
   for (size_t i = 0; i < constraints.size(); i++)
     constraints[i]->GetDecidedValues(values);
 }
@@ -161,8 +163,33 @@ void Variable<T>::OnUpdate() {
 }
 
 template <class T>
+bool Variable<T>::Decide(T value, Constraint<T> *constraint) {
+  OnUpdate();
+  auto old_domain_size = domain.GetSize();
+  domain.LimitBounds(value, value);
+  auto new_domain_size = domain.GetSize();
+  if (old_domain_size > 1 && new_domain_size == 1)
+    return PropagateDecision(constraint);
+  return new_domain_size == 1;
+}
+
+template <class T>
+bool Variable<T>::Exclude(T value, Constraint<T> *constraint) {
+  size_t pos = domain.Find(value);
+  if (pos != domain.GetSize()) {
+    ExcludeAt(pos);
+    if (domain.GetSize() == 0)
+      return false;
+    else if (domain.GetSize() == 1)
+      return PropagateDecision(constraint);
+    else
+      return PropagateReduction(constraint);
+  }
+  return true;
+}
+
+template <class T>
 bool Variable<T>::Decide(T value) {
-  // Assert: value must be in the domain.
   OnUpdate();
   domain.LimitBounds(value, value);
   return domain.GetSize() > 0;

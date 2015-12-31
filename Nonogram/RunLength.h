@@ -98,8 +98,9 @@ bool RunLength<M, B>::Enforce() {
 
   for (size_t i = 0; i < num_undecided; i++) {
     if (out.IsDecided(undecided_indexes[i])) {
-      undecided_variables[i]->Decide(out.GetValue(undecided_indexes[i]));
-      undecided_variables[i]->PropagateDecision(this);
+      if (!undecided_variables[i]->Decide(out.GetValue(undecided_indexes[i]),
+                                          this))
+        return false;
     }
   }
 

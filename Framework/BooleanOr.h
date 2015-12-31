@@ -47,12 +47,9 @@ bool BooleanOr::OnDecided(Variable<bool> *decided) {
   bool target_value = is_positive[undecided_index] ? true : false;
 
   // Target value may not be in the domain. Need to check.
-  undecided->Decide(target_value);
-  if (undecided->GetDomainSize() == 0) return false;
-
   // One constraint can only decide at most one variable,
   // so exclude it from propagation.
-  return undecided->PropagateDecision(this);
+  return undecided->Decide(target_value, this);
 }
 
 #endif

@@ -4,7 +4,6 @@
 #include "Different.h"
 
 using namespace std;
-;
 
 //
 // OneToOne: Each value is uniquely assigned to one variable.
@@ -50,11 +49,7 @@ bool OneToOne<T>::OnReduced(Variable<T> *reduced) {
         variable->GetDomainSize() == 1)
       continue;
 
-    variable->Decide(value);
-    if (variable->GetDomainSize() == 0) return false;
-
-    bool consistent = variable->PropagateDecision(NULL);
-    if (!consistent) return false;
+    if (!variable->Decide(value, NULL)) return false;
   }
   return true;
 }

@@ -36,34 +36,20 @@ bool Equality::Enforce() {
   int equal = relation->GetValue(0);
 
   if (n0_decided && n1_decided) {
-    if (relation_decided) return equal == (v0 == v1);
-
-    variables[2]->Decide(v0 == v1);
-    if (variables[2]->GetDomainSize() == 0) return false;
-    return variables[2]->PropagateDecision(this);
-
+    if (relation_decided)
+      return equal == (v0 == v1);
+    else
+      return variables[2]->Decide(v0 == v1, this);
   } else if (n0_decided && relation_decided) {
     if (equal)
-      variables[1]->Decide(v0);
+      return variables[1]->Decide(v0, this);
     else
-      variables[1]->Exclude(v0);
-
-    if (variables[1]->GetDomainSize() == 0) return false;
-    if (variables[1]->GetDomainSize() == 1)
-      return variables[1]->PropagateDecision(this);
-    return true;
-
+      return variables[1]->Exclude(v0, this);
   } else if (n1_decided && relation_decided) {
     if (equal)
-      variables[0]->Decide(v1);
+      return variables[0]->Decide(v1, this);
     else
-      variables[0]->Exclude(v1);
-
-    if (variables[0]->GetDomainSize() == 0) return false;
-    if (variables[0]->GetDomainSize() == 1)
-      return variables[0]->PropagateDecision(this);
-    return true;
-
+      return variables[0]->Exclude(v1, this);
   } else
     return true;
 }

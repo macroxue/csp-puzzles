@@ -26,17 +26,9 @@ bool Same<T>::OnDecided(Variable<T> *decided) {
   for (size_t i = 0; i < num_variables; i++) {
     if (variables[i] == decided) continue;
 
-    size_t old_domain_size = variables[i]->GetDomainSize();
-    variables[i]->Decide(value);
-    size_t new_domain_size = variables[i]->GetDomainSize();
-
-    if (new_domain_size == 0) return false;
-    if (old_domain_size > 1 && new_domain_size == 1) {
-      // One constraint can decide multiple variables,
-      // so include it in the propagation.
-      bool consistent = variables[i]->PropagateDecision(NULL);
-      if (!consistent) return false;
-    }
+    // One constraint can decide multiple variables,
+    // so include it in the propagation.
+    if (!variables[i]->Decide(value, NULL)) return false;
   }
   return true;
 }
