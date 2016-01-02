@@ -61,7 +61,6 @@ class Variable {
  public:
   float failures;
   bool active;
-  bool is_hidden = false;
 };
 
 #include "Constraint.h"
