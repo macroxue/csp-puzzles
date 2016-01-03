@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 usage()
 {
@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
     if (argc > 2)
         threshold = atoi(argv[2]);
 
-    char image[width/factor+1][height/factor+1];
+    short image[width/factor+1][height/factor+1];
     memset(image, 0, sizeof(image));
 
     char *brown = header_data;
