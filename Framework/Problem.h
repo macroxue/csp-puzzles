@@ -128,6 +128,7 @@ void Problem<T>::AddVariable(Variable<T> *variable) {
   variable->active = true;
   variable->SetId(variables.size());
   variable->SetStorage(&storage);
+  variables.push_back(variable);
 }
 
 template <class T>
