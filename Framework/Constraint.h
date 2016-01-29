@@ -20,6 +20,7 @@ template <class T>
 class Constraint : public QueueObject {
  public:
   Constraint();
+  virtual ~Constraint() = default;
 
   void AddVariable(Variable<T> *variable);
   void AddVariable(size_t num_variables, ...);

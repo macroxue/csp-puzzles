@@ -10,6 +10,7 @@ struct Option {
   bool arc_consistency = false;
   bool debug = false;
   bool interactive = false;
+  bool learning = false;
   size_t num_solutions = 2;
   bool optimize = false;
   float decay = 0.99;
@@ -30,13 +31,16 @@ struct Option {
 
 void Option::GetOptions(int argc, char *argv[]) {
   int c;
-  while ((c = getopt(argc, argv, "adn:or:s:v:y:")) != -1) {
+  while ((c = getopt(argc, argv, "adln:or:s:v:y:")) != -1) {
     switch (c) {
       case 'a':
         arc_consistency = !arc_consistency;
         break;
       case 'd':
         debug = !debug;
+        break;
+      case 'l':
+        learning = !learning;
         break;
       case 'n':
         num_solutions = atoi(optarg);
@@ -96,6 +100,7 @@ void Option::ShowOptions() const {
   printf("arc_consistency = %d\n", arc_consistency);
   printf("debug = %d\n", debug);
   printf("interactive = %d\n", interactive);
+  printf("learning = %d\n", learning);
   printf("num_solutions = %ld\n", num_solutions);
   printf("optimize = %d\n", optimize);
   printf("decay = %f\n", decay);

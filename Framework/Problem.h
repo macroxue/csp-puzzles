@@ -3,6 +3,7 @@
 
 #include "Option.h"
 #include "Constraint.h"
+#include "Nogood.h"
 #include "Queue.h"
 
 #include <algorithm>
@@ -49,6 +50,7 @@ class Problem {
   void Revise(Variable<T> *variable, size_t v);
   bool EnforceArcConsistency(size_t v);
   bool Search(size_t v);
+  void LearnNewNogoods();
   void Sort(size_t v);
   void StartCheckpoint();
   void RestoreCheckpoint();
@@ -57,7 +59,7 @@ class Problem {
   vector<Constraint<T> *> constraints;
   Queue<Constraint<T> *> active_constraints;
 
-  typedef vector<pair<Variable<T> *, size_t> > Storage;
+  typedef vector<pair<Variable<T> *, size_t>> Storage;
   Storage storage;
 
  protected:
@@ -76,6 +78,17 @@ class Problem {
   Counter counters[16];
 
   long min_cost;
+
+  struct Backtrack {
+    Backtrack(Variable<T> *variable, T *values, int size)
+        : variable(variable), values(values), size(size) {}
+
+    Variable<T> *variable;
+    T *values;
+    int size;
+    int index = 0;
+  };
+  vector<Backtrack> nogood;
 };
 
 #include <sys/time.h>
@@ -94,6 +107,7 @@ Problem<T>::~Problem() {
     printf("Total time: %.3f s\n", GetTimeUsage());
     printf("Total memory: %ld KB\n", GetMemoryUsage());
   }
+  for (auto *c : constraints) delete c;
 }
 
 template <class T>
@@ -287,8 +301,7 @@ void Problem<T>::Solve() {
       printf("Restart search\n");
       ShowState(NULL);
     }
-  }
-  catch (bool result) {
+  } catch (bool result) {
     ;
   }
   ShowCounters();
@@ -318,9 +331,11 @@ bool Problem<T>::Search(size_t v) {
   T values[domain_size];
   OrderValues(variable, values);
   bool is_deadend = true;
+  if (option.learning) nogood.emplace_back(variable, &values[0], domain_size);
   for (int i = 0; i < domain_size; ++i) {
     if (i < domain_size - 1) StartCheckpoint();
     variable->Decide(values[i]);
+    if (option.learning) nogood.back().index = i;
     bool consistent = PropagateDecision(variable);
     if (consistent && option.arc_consistency) {
       variable->ActivateAffectedVariables();
@@ -347,11 +362,39 @@ bool Problem<T>::Search(size_t v) {
     variable->failures++;
     // ShowState(variable);
     if (deadend_count >= option.restart) {
+      if (option.learning) LearnNewNogoods();
       option.restart = option.restart * 1.618;
       return false;
     }
   }
+  if (option.learning) nogood.pop_back();
   return true;
+}
+
+template <class T>
+void Problem<T>::LearnNewNogoods() {
+  vector<pair<Variable<T> *, T>> assignments;
+  for (const auto &backtrack : nogood) {
+    for (int i = 0; i <= backtrack.index; ++i) {
+      assignments.push_back(make_pair(backtrack.variable, backtrack.values[i]));
+      if (i < backtrack.index) {
+        if (assignments.size() == 1)
+          backtrack.variable->Exclude(backtrack.values[i]);
+        else
+          AddConstraint(new Nogood<T>(assignments));
+
+        printf("Nogood ");
+        for (const auto &assignment : assignments) {
+          printf("%lu=%d ", assignment.first->GetId(), assignment.second);
+        }
+        putchar('\n');
+      }
+      if (i < backtrack.index || backtrack.index == backtrack.size - 1)
+        assignments.pop_back();
+    }
+    if (assignments.size() == 10) break;
+  }
+  nogood.clear();
 }
 
 template <class T>
