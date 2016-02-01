@@ -133,7 +133,7 @@ void Problem<T>::AddConstraint(Constraint<T> *constraint) {
 
 template <class T>
 void Problem<T>::ActivateConstraint(Constraint<T> *constraint) {
-  if (!constraint->in_queue) active_constraints.Enqueue(constraint);
+  active_constraints.Enqueue(constraint);
 }
 
 template <class T>

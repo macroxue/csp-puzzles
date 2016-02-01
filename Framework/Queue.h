@@ -1,12 +1,16 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-struct QueueObject {
+class QueueObject {
+ public:
+  QueueObject() : prev(NULL), next(NULL), in_queue(false) {}
+
+ private:
+  template<typename T> friend class Queue;
+
   QueueObject* prev;
   QueueObject* next;
   bool in_queue;
-
-  QueueObject() : prev(NULL), next(NULL), in_queue(false) {}
 };
 
 template <typename T>
@@ -29,6 +33,8 @@ Queue<T>::Queue()
 
 template <typename T>
 void Queue<T>::Enqueue(QueueObject* obj) {
+  if (obj->in_queue) return;
+
   obj->next = NULL;
   obj->prev = tail;
   if (tail == NULL)
