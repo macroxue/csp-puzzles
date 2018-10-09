@@ -92,6 +92,13 @@ Domain<T>::Domain(T low, T high) {
   count = values.size();
 }
 
+template <>
+Domain<bool>::Domain(bool low, bool high) {
+  values.push_back(low);
+  if (low != high) values.push_back(high);
+  count = values.size();
+}
+
 template <class T>
 Domain<T>::Domain(const T values_in[]) {
   for (size_t i = 0; values_in[i]; i++) values.push_back(values_in[i]);

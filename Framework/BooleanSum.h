@@ -29,7 +29,7 @@ bool BooleanSum<T>::Enforce() {
   size_t num_variables = variables.size();
   size_t num_decided = 0;
 
-  int sum = 0;
+  size_t sum = 0;
   for (size_t i = 0; i < num_variables; i++) {
     if (variables[i]->GetDomainSize() == 1) {
       num_decided++;

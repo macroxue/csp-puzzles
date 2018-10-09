@@ -214,7 +214,7 @@ void Problem<T>::Revise(Variable<T> *variable, size_t v) {
                    values[i]));
       DEBUG(ShowState(variable));
       size_t num_decided = 0;
-      for (int j = v; j < variables.size(); ++j)
+      for (size_t j = v; j < variables.size(); ++j)
         num_decided += (variables[j]->GetDomainSize() == 1);
       variable->failures += num_decided / float(variables.size());
     }
@@ -343,7 +343,7 @@ bool Problem<T>::Search(size_t v) {
   OrderValues(variable, values);
   bool is_deadend = true;
   if (option.learning) nogood.emplace_back(variable, &values[0], domain_size);
-  for (int i = 0; i < domain_size; ++i) {
+  for (size_t i = 0; i < domain_size; ++i) {
     if (i < domain_size - 1) StartCheckpoint();
     variable->Decide(values[i]);
     if (option.learning) nogood.back().index = i;
@@ -379,7 +379,7 @@ bool Problem<T>::Search(size_t v) {
   }
   if (option.learning) nogood.pop_back();
   if (option.progress && backtrack_count % option.progress == 0) {
-    printf("----- %d -----\n", backtrack_count);
+    printf("----- %lu -----\n", backtrack_count);
     ShowState(NULL);
   }
   return true;

@@ -29,7 +29,7 @@ template <class T>
 Nogood<T>::~Nogood() {
   vector<Variable<T>*>& variables = Constraint<T>::variables;
   printf("%lu: ", decisions);
-  for (int i = 0; i < values.size(); ++i)
+  for (size_t i = 0; i < values.size(); ++i)
     printf("%lu=%d ", variables[i]->GetId(), (int)values[i]);
   putchar('\n');
 }

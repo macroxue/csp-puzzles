@@ -152,7 +152,7 @@ bool Automaton<T, N, M>::Accept(const Input<I> &input, Input<I> &output,
     }
 
     int num_values = 0, value;
-    for (int v = 0; v < N; ++v) {
+    for (size_t v = 0; v < N; ++v) {
       if (power_input.Has(v)) {
         num_values++;
         value = v;
