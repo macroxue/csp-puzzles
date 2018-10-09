@@ -60,6 +60,7 @@ class Variable {
 
  public:
   float failures;
+  int deadends;
   bool active;
 };
 
@@ -94,6 +95,7 @@ template <class T>
 void Variable<T>::Init() {
   name = "";
   failures = 0;
+  deadends = 0;
   active = false;
 }
 

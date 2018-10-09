@@ -65,7 +65,7 @@ class Problem {
  protected:
   size_t num_solutions;
   size_t search_count;
-  size_t deadend_count;
+  size_t backtrack_count;
 
   Option option;
 
@@ -97,7 +97,7 @@ template <class T>
 Problem<T>::Problem(Option option)
     : num_solutions(0),
       search_count(0),
-      deadend_count(0),
+      backtrack_count(0),
       option(option),
       min_cost(LONG_MAX) {}
 
@@ -106,6 +106,15 @@ Problem<T>::~Problem() {
   if (!option.interactive) {
     printf("Total time: %.3f s\n", GetTimeUsage());
     printf("Total memory: %ld KB\n", GetMemoryUsage());
+    printf("Total backtracks: %lu\n", backtrack_count);
+    int max_deadends = 0;
+    int total_deadends = 0;
+    for (size_t i = 0; i < variables.size(); i++) {
+      max_deadends = std::max(max_deadends, variables[i]->deadends);
+      total_deadends += variables[i]->deadends;
+    }
+    printf("Total deadends: %d\n", total_deadends);
+    printf("Max deadends: %d\n", max_deadends);
   }
   for (auto *c : constraints) delete c;
 }
@@ -241,7 +250,10 @@ bool Problem<T>::EnforceArcConsistency(size_t v) {
       size_t old_domain_size = variable->GetDomainSize();
       Revise(variable, v);
       size_t new_domain_size = variable->GetDomainSize();
-      if (new_domain_size == 0) return false;
+      if (new_domain_size == 0) {
+        variable->deadends++;
+        return false;
+      }
       if (new_domain_size == 1) {
         bool consistent = PropagateDecision(variable);
         assert(consistent);
@@ -295,10 +307,9 @@ void Problem<T>::Solve() {
     DEBUG(ShowState(NULL));
 
     while (!Search(0)) {
-      deadend_count = 0;
+      printf("Restart search after %lu backtracks\n", backtrack_count);
       storage.clear();
       Sort(0);
-      printf("Restart search\n");
       ShowState(NULL);
     }
   } catch (bool result) {
@@ -356,16 +367,15 @@ bool Problem<T>::Search(size_t v) {
     variable->Exclude(values[i]);
   }
   if (is_deadend) {
-    deadend_count++;
     DEBUG(printf("%ld: Variable %ld failures %f\n", v, variable->GetId(),
                  variable->failures));
     variable->failures++;
     // ShowState(variable);
-    if (deadend_count >= option.restart) {
-      if (option.learning) LearnNewNogoods();
-      option.restart = option.restart * 1.618;
-      return false;
-    }
+  }
+  if (++backtrack_count >= option.restart) {
+    if (option.learning) LearnNewNogoods();
+    option.restart = option.restart * 1.618;
+    return false;
   }
   if (option.learning) nogood.pop_back();
   return true;
@@ -523,15 +533,15 @@ void Problem<T>::ProcessSolution() {
     if (min_cost > cost) {
       min_cost = cost;
       printf(
-          "----- Solution %ld after %ld searches, %ld deadends and %.3fs "
+          "----- Solution %ld after %ld searches, %ld backtracks and %.3fs "
           "-----\n",
-          num_solutions, search_count, deadend_count, GetTimeUsage());
+          num_solutions, search_count, backtrack_count, GetTimeUsage());
       ShowSolution();
     }
   } else {
     printf(
-        "----- Solution %ld after %ld searches, %ld deadends and %.3fs -----\n",
-        num_solutions, search_count, deadend_count, GetTimeUsage());
+        "----- Solution %ld after %ld searches, %ld backtracks and %.3fs -----\n",
+        num_solutions, search_count, backtrack_count, GetTimeUsage());
     ShowSolution();
     if (option.num_solutions > 0 && num_solutions >= option.num_solutions) {
       throw true;
