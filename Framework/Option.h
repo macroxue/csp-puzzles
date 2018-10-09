@@ -13,6 +13,7 @@ struct Option {
   bool learning = false;
   size_t num_solutions = 2;
   bool optimize = false;
+  size_t progress = 0;
   float decay = 0.99;
   size_t restart = INT_MAX;
   enum sort_t { SORT_DISABLED, SORT_DOMAIN_SIZE, SORT_FAILURES, SORT_WEIGHT };
@@ -31,7 +32,7 @@ struct Option {
 
 void Option::GetOptions(int argc, char *argv[]) {
   int c;
-  while ((c = getopt(argc, argv, "adln:or:s:v:y:")) != -1) {
+  while ((c = getopt(argc, argv, "adln:op:r:s:v:y:")) != -1) {
     switch (c) {
       case 'a':
         arc_consistency = !arc_consistency;
@@ -47,6 +48,9 @@ void Option::GetOptions(int argc, char *argv[]) {
         break;
       case 'o':
         optimize = !optimize;
+        break;
+      case 'p':
+        progress = atoi(optarg);
         break;
       case 'r':
         restart = atoi(optarg);

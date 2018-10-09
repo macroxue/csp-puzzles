@@ -378,6 +378,10 @@ bool Problem<T>::Search(size_t v) {
     return false;
   }
   if (option.learning) nogood.pop_back();
+  if (option.progress && backtrack_count % option.progress == 0) {
+    printf("----- %d -----\n", backtrack_count);
+    ShowState(NULL);
+  }
   return true;
 }
 
