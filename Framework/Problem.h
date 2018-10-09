@@ -103,19 +103,6 @@ Problem<T>::Problem(Option option)
 
 template <class T>
 Problem<T>::~Problem() {
-  if (!option.interactive) {
-    printf("Total time: %.3f s\n", GetTimeUsage());
-    printf("Total memory: %ld KB\n", GetMemoryUsage());
-    printf("Total backtracks: %lu\n", backtrack_count);
-    int max_deadends = 0;
-    int total_deadends = 0;
-    for (size_t i = 0; i < variables.size(); i++) {
-      max_deadends = std::max(max_deadends, variables[i]->deadends);
-      total_deadends += variables[i]->deadends;
-    }
-    printf("Total deadends: %d\n", total_deadends);
-    printf("Max deadends: %d\n", max_deadends);
-  }
   for (auto *c : constraints) delete c;
 }
 
@@ -316,6 +303,20 @@ void Problem<T>::Solve() {
     ;
   }
   ShowCounters();
+
+  if (!option.interactive) {
+    printf("Total time: %.3f s\n", GetTimeUsage());
+    printf("Total memory: %ld KB\n", GetMemoryUsage());
+    printf("Total backtracks: %lu\n", backtrack_count);
+    int max_deadends = 0;
+    int total_deadends = 0;
+    for (size_t i = 0; i < variables.size(); i++) {
+      max_deadends = std::max(max_deadends, variables[i]->deadends);
+      total_deadends += variables[i]->deadends;
+    }
+    printf("Total deadends: %d\n", total_deadends);
+    printf("Max deadends: %d\n", max_deadends);
+  }
 }
 
 template <class T>
